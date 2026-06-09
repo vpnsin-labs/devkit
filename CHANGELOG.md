@@ -1,0 +1,20 @@
+# Changelog
+
+## [0.1.1](https://github.com/vpnsin/ladevconfig/compare/v0.1.0...v0.1.1) (2026-06-09)
+
+
+### Features
+
+* add design-craft Claude Code skill template ([3b0b6f2](https://github.com/vpnsin/ladevconfig/commit/3b0b6f25bef865f81322e49eb66657b4da7e93a6))
+* add npm publish-on-release workflow ([52441b5](https://github.com/vpnsin/ladevconfig/commit/52441b516fe7f8effa3fe10b240d286c6a037ba2))
+* add opt-in Lighthouse CI workflow template ([757a3c1](https://github.com/vpnsin/ladevconfig/commit/757a3c1a6547b58513e54996eef1e84f38389ace))
+* add shared tsconfig (base/node/next), Jest preset and editorconfig ([43d0296](https://github.com/vpnsin/ladevconfig/commit/43d0296a291a4969c605a11ca0dc506068eba3a3))
+* add Trivy/Scorecard workflows and governance templates ([f976dcf](https://github.com/vpnsin/ladevconfig/commit/f976dcff30af6748b4a4392798d3b42e8b115ddd))
+* add Vitest preset, .nvmrc and node-version-file CI ([c6356b2](https://github.com/vpnsin/ladevconfig/commit/c6356b2dd58403732212852b3c2cc8716adef9d4))
+* initial shared dev config for Node.js & Next.js repos ([f369c21](https://github.com/vpnsin/ladevconfig/commit/f369c213758438ca695d3050a7351be5e272a8cc))
+* make init private-repo aware ([c92c77e](https://github.com/vpnsin/ladevconfig/commit/c92c77e365a01b3c61fcb02c647e69893d38a385))
+
+
+### Bug Fixes
+
+* pin trivy-action to a valid release (v0.36.0) ([198ff5a](https://github.com/vpnsin/ladevconfig/commit/198ff5a55861bf1e6576b2de0ae7563bce311d57))
