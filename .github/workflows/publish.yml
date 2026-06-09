@@ -1,0 +1,34 @@
+name: Publish (manual)
+
+# Manual npm publish / re-publish of the version currently in package.json.
+# Use to recover a release whose auto-publish failed (e.g. a bad NPM_TOKEN), or
+# to publish out of band. Normal releases publish automatically from the
+# release-please job.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
