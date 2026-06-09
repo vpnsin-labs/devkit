@@ -1,8 +1,8 @@
 // Shared ESLint flat config for Next.js repos = base preset + eslint-config-next.
 // `eslint-config-next` is an OPTIONAL peer dependency — install it in the
-// consuming Next.js repo (the `ladevconfig init` CLI does this automatically).
+// consuming Next.js repo (the `devkit init` CLI does this automatically).
 //
-//   import next from 'ladevconfig/eslint/next';
+//   import next from 'devkit/eslint/next';
 //   export default next;
 
 import base from './base.js';
@@ -15,7 +15,7 @@ try {
   nextConfigs = Array.isArray(mod.default) ? mod.default : (mod.default ?? []);
 } catch {
   throw new Error(
-    "ladevconfig/eslint/next requires 'eslint-config-next'. Install it: npm i -D eslint-config-next"
+    "devkit/eslint/next requires 'eslint-config-next'. Install it: npm i -D eslint-config-next"
   );
 }
 

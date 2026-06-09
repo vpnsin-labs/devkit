@@ -2,11 +2,11 @@
 // types apply:
 //   // vitest.config.mjs
 //   import { defineConfig } from 'vitest/config';
-//   import base from 'ladevconfig/vitest';
+//   import base from 'devkit/vitest';
 //   export default defineConfig(base);
 //
 // Requires `vitest` and `@vitest/coverage-v8` in the consuming repo (the
-// `ladevconfig init --vitest` CLI installs them). For component tests in a
+// `devkit init --vitest` CLI installs them). For component tests in a
 // browser-like DOM, set `test.environment` to 'jsdom' and add the dep.
 export default {
   test: {

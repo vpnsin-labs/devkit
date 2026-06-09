@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "ladevconfig base",
+  "display": "devkit base",
   "_comment": "Framework-agnostic strict base. Extend a variant (node/next) or this directly.",
   "compilerOptions": {
     "target": "ES2022",

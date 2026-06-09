@@ -1,18 +1,19 @@
 {
-  "name": "ladevconfig",
+  "name": "devkit",
   "version": "0.1.1",
   "description": "Shared ESLint, Prettier, commitlint, markdownlint, lint-staged, Husky and GitHub CI/release config for Node.js & Next.js repos.",
   "type": "module",
+  "prettier": "./prettier/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vpnsin/ladevconfig.git"
+    "url": "git+https://github.com/vpnsin/devkit.git"
   },
-  "homepage": "https://github.com/vpnsin/ladevconfig#readme",
+  "homepage": "https://github.com/vpnsin/devkit#readme",
   "bugs": {
-    "url": "https://github.com/vpnsin/ladevconfig/issues"
+    "url": "https://github.com/vpnsin/devkit/issues"
   },
   "bin": {
-    "ladevconfig": "bin/cli.js"
+    "devkit": "bin/cli.js"
   },
   "exports": {
     "./eslint": "./eslint/base.js",

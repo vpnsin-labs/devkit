@@ -2,7 +2,7 @@
 // Composes: @eslint/js recommended + typescript-eslint recommended + Prettier
 // (formatting surfaced as warnings, not errors). Import and spread to extend:
 //
-//   import base from 'ladevconfig/eslint/base';
+//   import base from 'devkit/eslint/base';
 //   export default [...base, { rules: { 'no-console': 'off' } }];
 
 import js from '@eslint/js';

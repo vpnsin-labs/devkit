@@ -1,7 +1,7 @@
 # Contributing
 
 Thanks for contributing! This repository uses shared tooling from
-[`ladevconfig`](https://github.com/vpnsin/ladevconfig) — ESLint, Prettier,
+[`devkit`](https://github.com/vpnsin/devkit) — ESLint, Prettier,
 commitlint, markdownlint, Husky, and CI/release workflows.
 
 ## Getting started
@@ -30,12 +30,12 @@ commitlint, markdownlint, Husky, and CI/release workflows.
 The `commit-msg` hook enforces them, and release-please uses them to compute the
 version bump and changelog.
 
-| Type                       | Effect          |
-| -------------------------- | --------------- |
-| `feat:`                    | minor release   |
-| `fix:`                     | patch release   |
-| `docs:` `chore:` `refactor:` `test:` `ci:` `build:` `perf:` `style:` | no release      |
-| `feat!:` / `BREAKING CHANGE:` footer | major release |
+| Type                                                                 | Effect        |
+| -------------------------------------------------------------------- | ------------- |
+| `feat:`                                                              | minor release |
+| `fix:`                                                               | patch release |
+| `docs:` `chore:` `refactor:` `test:` `ci:` `build:` `perf:` `style:` | no release    |
+| `feat!:` / `BREAKING CHANGE:` footer                                 | major release |
 
 Example: `feat(auth): add password reset flow`
 

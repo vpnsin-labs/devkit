@@ -3,7 +3,7 @@ name: Lighthouse
 # Lighthouse CI on pull requests — performance, accessibility, best-practices
 # and SEO. Builds the app, serves it, audits the URLs in lighthouserc.json, and
 # posts a public report link in the run logs.
-# Opt-in: NOT installed by `ladevconfig init` unless you pass --lighthouse.
+# Opt-in: NOT installed by `devkit init` unless you pass --lighthouse.
 on:
   pull_request:
     branches: [main, dev]

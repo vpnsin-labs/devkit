@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "ladevconfig next",
+  "display": "devkit next",
   "_comment": "For Next.js apps (App Router). Add your own paths/include in the repo tsconfig.",
   "extends": "./base.json",
   "compilerOptions": {

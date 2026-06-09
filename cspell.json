@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "codeql",
+    "commitlint",
+    "Dependabot",
+    "devkit",
+    "dotenv",
+    "esbenp",
+    "helmet",
+    "jiti",
+    "lighthouserc",
+    "lintstagedrc",
+    "markdownlint",
+    "npmrc",
+    "nvmrc",
+    "Scorecard",
+    "sonarqube",
+    "Trivy",
+    "tsup",
+    "unconfigured",
+    "vitest"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    ".next/**",
+    "*.log",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "CHANGELOG.md"
+  ]
+}

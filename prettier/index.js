@@ -1,5 +1,5 @@
 // Shared Prettier config. Reference from a consuming repo via package.json:
-//   "prettier": "ladevconfig/prettier"
+//   "prettier": "devkit/prettier"
 export default {
   semi: true,
   tabWidth: 2,

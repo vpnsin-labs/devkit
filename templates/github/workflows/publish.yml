@@ -2,7 +2,7 @@ name: Publish to npm
 
 # Publishes the package when a GitHub Release is published (release-please
 # creates the release when its PR is merged). Requires an NPM_TOKEN repo secret
-# (an npm automation token). Opt-in: NOT installed by `ladevconfig init` unless
+# (an npm automation token). Opt-in: NOT installed by `devkit init` unless
 # you pass --publish. For a private/scoped package, adjust `--access`.
 on:
   release:

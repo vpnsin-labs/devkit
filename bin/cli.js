@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// ladevconfig CLI — scaffolds shared lint/format/commit/CI/release tooling into
+// devkit CLI — scaffolds shared lint/format/commit/CI/release tooling into
 // a Node.js or Next.js repo. Configs that CAN reference the package (ESLint,
 // Prettier, commitlint, lint-staged) are written as thin shims so they stay in
 // sync; files that CANNOT be referenced (Husky hooks, GitHub workflows, VS Code
 // settings, PR template, release-please config) are copied as templates.
 //
 // Usage:
-//   npx ladevconfig init [--node|--next] [--force] [--no-install]
+//   npx devkit init [--node|--next] [--force] [--no-install]
 
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, copyFileSync, writeFileSync, readFileSync, chmodSync } from 'node:fs';
@@ -38,15 +38,17 @@ const log = {
 
 if (cmd === 'help' || has('-h') || has('--help')) {
   console.log(`
-${c.bold('ladevconfig')} — shared Node.js/Next.js dev config
+${c.bold('devkit')} — shared Node.js/Next.js dev config
 
-${c.bold('Usage:')}  npx ladevconfig init [options]
+${c.bold('Usage:')}  npx devkit init [options]
 
 ${c.bold('Options:')}
   --next         force the Next.js ESLint preset
   --node         force the base (Node) ESLint preset
   --private      private repo: skip GHAS workflows (Dependabot + npm audit instead)
   --public       public repo: include GHAS workflows (default; auto-detected via gh)
+  --backend      scaffold a runnable Express + TypeScript backend (src/, Dockerfile)
+  --frontend     scaffold a runnable Next.js (App Router) + TypeScript frontend
   --jest         also scaffold Jest (ts-jest) config, scripts and deps
   --vitest       also scaffold Vitest config, scripts and deps
   --scorecard    also add the OSSF Scorecard workflow (public repos)
@@ -62,7 +64,7 @@ ${c.bold('Options:')}
 }
 
 if (cmd !== 'init') {
-  console.error(`Unknown command "${cmd}". Run: npx ladevconfig --help`);
+  console.error(`Unknown command "${cmd}". Run: npx devkit --help`);
   process.exit(1);
 }
 
@@ -75,7 +77,26 @@ if (!existsSync(pkgPath)) {
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-const isNext = has('--next') ? true : has('--node') ? false : Boolean(allDeps.next);
+// App starters (opt-in): scaffold a runnable skeleton, not just tooling config.
+const wantsBackend = has('--backend');
+const wantsFrontend = has('--frontend');
+if (wantsBackend && wantsFrontend) {
+  console.error(
+    '--backend and --frontend scaffold a single flat app each; run them in separate directories (or set up a monorepo) instead of combining them.'
+  );
+  process.exit(1);
+}
+
+// --frontend implies the Next.js preset; --backend implies the Node preset.
+const isNext = has('--next')
+  ? true
+  : has('--node')
+    ? false
+    : wantsFrontend
+      ? true
+      : wantsBackend
+        ? false
+        : Boolean(allDeps.next);
 const force = has('--force');
 
 // GHAS code scanning (CodeQL/Trivy/Dependency Review/Scorecard) is free only on
@@ -99,7 +120,7 @@ function detectPrivate() {
 const isPrivate = detectPrivate();
 
 console.log(
-  `\n${c.bold('ladevconfig init')} ${c.dim(`(${isNext ? 'Next.js' : 'Node'} preset, ${isPrivate ? 'private' : 'public'} repo)`)}\n`
+  `\n${c.bold('devkit init')} ${c.dim(`(${isNext ? 'Next.js' : 'Node'} preset, ${isPrivate ? 'private' : 'public'} repo)`)}\n`
 );
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -132,20 +153,23 @@ function writeFileIfAbsent(dest, content) {
 
 // ── 1. Config shims (kept in sync with the package) ─────────────────────────
 console.log(c.bold('Config shims'));
-const eslintPreset = isNext ? 'ladevconfig/eslint/next' : 'ladevconfig/eslint/base';
-writeFileIfAbsent('eslint.config.mjs', `export { default } from '${eslintPreset}';\n`);
-writeFileIfAbsent('commitlint.config.mjs', `export { default } from 'ladevconfig/commitlint';\n`);
-writeFileIfAbsent('.lintstagedrc.mjs', `export { default } from 'ladevconfig/lint-staged';\n`);
+const eslintPreset = isNext ? 'devkit/eslint/next' : 'devkit/eslint/base';
+// ESLint (needs jiti) and commitlint both load TypeScript config files natively,
+// so these shims are .ts. lint-staged stays .mjs: its .ts auto-detection is
+// unreliable and would silently break the bare `npx lint-staged` pre-commit hook.
+writeFileIfAbsent('eslint.config.ts', `export { default } from '${eslintPreset}';\n`);
+writeFileIfAbsent('commitlint.config.ts', `export { default } from 'devkit/commitlint';\n`);
+writeFileIfAbsent('.lintstagedrc.mjs', `export { default } from 'devkit/lint-staged';\n`);
 
 // TypeScript: scaffold a tsconfig that extends the shared base (only if absent).
 const tsconfigBody = isNext
   ? {
-      extends: 'ladevconfig/tsconfig/next.json',
+      extends: 'devkit/tsconfig/next.json',
       include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
       exclude: ['node_modules'],
     }
   : {
-      extends: 'ladevconfig/tsconfig/node.json',
+      extends: 'devkit/tsconfig/node.json',
       compilerOptions: { outDir: 'dist', rootDir: 'src' },
       include: ['src/**/*.ts'],
       exclude: ['node_modules', 'dist'],
@@ -153,14 +177,36 @@ const tsconfigBody = isNext
 writeFileIfAbsent('tsconfig.json', `${JSON.stringify(tsconfigBody, null, 2)}\n`);
 
 // Test runner (opt-in): shim the shared preset. Jest or Vitest, not both.
+// Vitest loads .ts config natively (esbuild). Jest stays .mjs: its ts-node loader
+// transpiles to CJS and cannot re-export devkit's ESM preset from a .ts config.
 if (has('--jest')) {
-  writeFileIfAbsent('jest.config.mjs', `export { default } from 'ladevconfig/jest';\n`);
+  writeFileIfAbsent('jest.config.mjs', `export { default } from 'devkit/jest';\n`);
 }
 if (has('--vitest')) {
   writeFileIfAbsent(
-    'vitest.config.mjs',
-    `import { defineConfig } from 'vitest/config';\nimport base from 'ladevconfig/vitest';\nexport default defineConfig(base);\n`
+    'vitest.config.ts',
+    `import { defineConfig } from 'vitest/config';\nimport base from 'devkit/vitest';\nexport default defineConfig(base);\n`
   );
+}
+
+// ── 1b. App starter (opt-in) ────────────────────────────────────────────────
+if (wantsBackend) {
+  console.log(c.bold('\nBackend app (Express + TypeScript)'));
+  copyTemplate('app/backend/src/server.ts', 'src/server.ts');
+  copyTemplate('app/backend/src/app.ts', 'src/app.ts');
+  copyTemplate('app/backend/src/routes/health.ts', 'src/routes/health.ts');
+  copyTemplate('app/backend/src/env.ts', 'src/env.ts');
+  copyTemplate('app/backend/env.example', '.env.example');
+  copyTemplate('app/backend/Dockerfile', 'Dockerfile');
+  copyTemplate('app/backend/dockerignore', '.dockerignore');
+}
+if (wantsFrontend) {
+  console.log(c.bold('\nFrontend app (Next.js App Router + TypeScript)'));
+  copyTemplate('app/frontend/app/layout.tsx', 'app/layout.tsx');
+  copyTemplate('app/frontend/app/page.tsx', 'app/page.tsx');
+  copyTemplate('app/frontend/app/globals.css', 'app/globals.css');
+  copyTemplate('app/frontend/next.config.mjs', 'next.config.mjs');
+  copyTemplate('app/frontend/env.example', '.env.example');
 }
 
 // ── 2. Copied templates ─────────────────────────────────────────────────────
@@ -171,7 +217,9 @@ copyTemplate('vscode/settings.json', '.vscode/settings.json');
 copyTemplate('vscode/extensions.json', '.vscode/extensions.json');
 copyTemplate('editorconfig', '.editorconfig');
 copyTemplate('nvmrc', '.nvmrc');
+copyTemplate('npmrc', '.npmrc');
 copyTemplate('markdownlint-cli2.jsonc', '.markdownlint-cli2.jsonc');
+copyTemplate('cspell.json', 'cspell.json');
 
 console.log(c.bold('\nGitHub workflows'));
 // Always free on public + private:
@@ -232,6 +280,10 @@ const scripts = {
   'format:check': 'prettier --check .',
   'type-check': 'tsc --noEmit',
   prepare: 'husky',
+  ...(wantsBackend
+    ? { dev: 'tsx watch src/server.ts', build: 'tsc', start: 'node dist/server.js' }
+    : {}),
+  ...(wantsFrontend ? { dev: 'next dev', build: 'next build', start: 'next start' } : {}),
   ...(has('--jest')
     ? { test: 'jest', 'test:watch': 'jest --watch', 'test:coverage': 'jest --coverage' }
     : {}),
@@ -251,7 +303,7 @@ for (const [k, v] of Object.entries(scripts)) {
   }
 }
 if (!pkg.prettier) {
-  pkg.prettier = 'ladevconfig/prettier';
+  pkg.prettier = 'devkit/prettier';
   changed = true;
   log.add('prettier');
 } else {
@@ -261,7 +313,7 @@ if (changed) writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
 // ── 4. Install dev dependencies ─────────────────────────────────────────────
 const devDeps = [
-  'ladevconfig',
+  'devkit',
   'eslint',
   'prettier',
   'husky',
@@ -269,22 +321,35 @@ const devDeps = [
   '@commitlint/cli',
   'markdownlint-cli2',
   'typescript',
+  'jiti', // lets ESLint load the eslint.config.ts shim (Node < 24.3)
   ...(isNext ? ['eslint-config-next'] : []),
   ...(has('--jest') ? ['jest', 'ts-jest', '@types/jest'] : []),
   ...(has('--vitest') ? ['vitest', '@vitest/coverage-v8'] : []),
+  ...(wantsBackend ? ['tsx', '@types/node', '@types/express', '@types/cors'] : []),
+  ...(wantsFrontend ? ['@types/react', '@types/react-dom'] : []),
+];
+
+// Runtime dependencies for the app starters (installed without -D).
+const prodDeps = [
+  ...(wantsBackend ? ['express', 'cors', 'helmet', 'dotenv'] : []),
+  ...(wantsFrontend ? ['next', 'react', 'react-dom'] : []),
 ];
 
 if (has('--no-install')) {
-  console.log(c.bold('\nDev dependencies'));
+  console.log(c.bold('\nDependencies'));
   log.info(`Skipped (--no-install). Install manually:`);
+  if (prodDeps.length) log.info(`npm i ${prodDeps.join(' ')}`);
   log.info(`npm i -D ${devDeps.join(' ')}`);
 } else {
-  console.log(c.bold('\nInstalling dev dependencies…'));
+  console.log(c.bold('\nInstalling dependencies…'));
+  if (prodDeps.length) log.info(`npm i ${prodDeps.join(' ')}`);
   log.info(`npm i -D ${devDeps.join(' ')}`);
   try {
+    if (prodDeps.length) execSync(`npm install ${prodDeps.join(' ')}`, { cwd: CWD, stdio: 'inherit' });
     execSync(`npm install -D ${devDeps.join(' ')}`, { cwd: CWD, stdio: 'inherit' });
   } catch {
     console.log(c.yellow('\n  ! Install failed — run it manually:'));
+    if (prodDeps.length) log.info(`npm i ${prodDeps.join(' ')}`);
     log.info(`npm i -D ${devDeps.join(' ')}`);
   }
 }
@@ -299,10 +364,14 @@ try {
 }
 
 // ── Done ────────────────────────────────────────────────────────────────────
-console.log(`\n${c.green('✓ ladevconfig wired up.')}\n`);
+console.log(`\n${c.green('✓ devkit wired up.')}\n`);
 console.log(`${c.bold('Next steps:')}`);
 console.log(`  1. Fill placeholders: ${c.cyan('.github/CODEOWNERS')} (@OWNER) and the security contact in ${c.cyan('.github/SECURITY.md')}.`);
 console.log(`  2. One-time normalise formatting:   ${c.cyan('npm run format')}`);
 console.log(`  3. Verify the gates:                ${c.cyan('npm run lint && npm run type-check && npm run lint:md')}`);
 console.log(`  4. In GitHub repo settings, enable Code scanning, Secret scanning & Dependency graph.`);
-console.log(`  5. Commit with a Conventional Commit ${c.dim('e.g. git commit -m "chore: adopt ladevconfig"')}\n`);
+console.log(`  5. Commit with a Conventional Commit ${c.dim('e.g. git commit -m "chore: adopt devkit"')}`);
+if (wantsBackend || wantsFrontend) {
+  console.log(`  6. Run the app:                     ${c.cyan('npm run dev')} ${c.dim('(copy .env.example → .env first)')}`);
+}
+console.log('');

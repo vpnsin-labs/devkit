@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "ladevconfig node",
+  "display": "devkit node",
   "_comment": "For Node.js libraries/services. Set outDir/rootDir/include in your repo tsconfig (path options must be relative to your project, not this base).",
   "extends": "./base.json",
   "compilerOptions": {
