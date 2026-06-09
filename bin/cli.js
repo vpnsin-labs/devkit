@@ -45,6 +45,7 @@ ${c.bold('Usage:')}  npx ladevconfig init [options]
 ${c.bold('Options:')}
   --next         force the Next.js ESLint preset
   --node         force the base (Node) ESLint preset
+  --jest         also scaffold Jest (ts-jest) config, scripts and deps
   --scorecard    also add the OSSF Scorecard workflow (public repos)
   --publish      also add the npm publish-on-release workflow (needs NPM_TOKEN)
   --sonar        also add SonarCloud analysis (needs SONAR_TOKEN)
@@ -109,12 +110,33 @@ writeFileIfAbsent('eslint.config.mjs', `export { default } from '${eslintPreset}
 writeFileIfAbsent('commitlint.config.mjs', `export { default } from 'ladevconfig/commitlint';\n`);
 writeFileIfAbsent('.lintstagedrc.mjs', `export { default } from 'ladevconfig/lint-staged';\n`);
 
+// TypeScript: scaffold a tsconfig that extends the shared base (only if absent).
+const tsconfigBody = isNext
+  ? {
+      extends: 'ladevconfig/tsconfig/next.json',
+      include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
+      exclude: ['node_modules'],
+    }
+  : {
+      extends: 'ladevconfig/tsconfig/node.json',
+      compilerOptions: { outDir: 'dist', rootDir: 'src' },
+      include: ['src/**/*.ts'],
+      exclude: ['node_modules', 'dist'],
+    };
+writeFileIfAbsent('tsconfig.json', `${JSON.stringify(tsconfigBody, null, 2)}\n`);
+
+// Jest (opt-in): shim the shared preset.
+if (has('--jest')) {
+  writeFileIfAbsent('jest.config.mjs', `export { default } from 'ladevconfig/jest';\n`);
+}
+
 // ── 2. Copied templates ─────────────────────────────────────────────────────
 console.log(c.bold('\nEditor & hooks'));
 copyTemplate('husky/pre-commit', '.husky/pre-commit', { executable: true });
 copyTemplate('husky/commit-msg', '.husky/commit-msg', { executable: true });
 copyTemplate('vscode/settings.json', '.vscode/settings.json');
 copyTemplate('vscode/extensions.json', '.vscode/extensions.json');
+copyTemplate('editorconfig', '.editorconfig');
 copyTemplate('markdownlint-cli2.jsonc', '.markdownlint-cli2.jsonc');
 
 console.log(c.bold('\nGitHub workflows'));
@@ -156,6 +178,9 @@ const scripts = {
   'format:check': 'prettier --check .',
   'type-check': 'tsc --noEmit',
   prepare: 'husky',
+  ...(has('--jest')
+    ? { test: 'jest', 'test:watch': 'jest --watch', 'test:coverage': 'jest --coverage' }
+    : {}),
 };
 pkg.scripts ??= {};
 let changed = false;
@@ -188,6 +213,7 @@ const devDeps = [
   'markdownlint-cli2',
   'typescript',
   ...(isNext ? ['eslint-config-next'] : []),
+  ...(has('--jest') ? ['jest', 'ts-jest', '@types/jest'] : []),
 ];
 
 if (has('--no-install')) {

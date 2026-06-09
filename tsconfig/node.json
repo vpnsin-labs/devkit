@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "ladevconfig node",
+  "_comment": "For Node.js libraries/services. Set outDir/rootDir/include in your repo tsconfig (path options must be relative to your project, not this base).",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  }
+}

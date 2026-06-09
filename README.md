@@ -75,6 +75,18 @@ export { default } from 'ladevconfig/commitlint';
 
 // .lintstagedrc.mjs
 export { default } from 'ladevconfig/lint-staged';
+
+// jest.config.mjs (Node + ts-jest)
+export { default } from 'ladevconfig/jest';
+```
+
+```jsonc
+// tsconfig.json — extend a shared base (base / node / next)
+{
+  "extends": "ladevconfig/tsconfig/node.json",
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
 ```
 
 ## What's inside
@@ -86,6 +98,9 @@ export { default } from 'ladevconfig/lint-staged';
 | Prettier        | `ladevconfig/prettier`                   | 100 print width, single quotes, es5 commas      |
 | commitlint      | `ladevconfig/commitlint`                 | Conventional Commits                            |
 | lint-staged     | `ladevconfig/lint-staged`                | ESLint/Prettier/markdownlint on staged files    |
+| TypeScript      | `ladevconfig/tsconfig/{base,node,next}.json` | strict base + Node/Next variants            |
+| Jest            | `ladevconfig/jest`                       | ts-jest preset (opt-in via `--jest`)            |
+| EditorConfig    | `templates/editorconfig`                 | LF, UTF-8, 2-space — complements Prettier       |
 | markdownlint    | `templates/markdownlint-cli2.jsonc`      | tuned to coexist with Prettier                  |
 | Husky hooks     | `templates/husky/*`                      | pre-commit → lint-staged, commit-msg → commitlint |
 | CI              | `templates/github/workflows/ci.yml`      | type-check, lint, lint:md, format, build (each `--if-present`) |

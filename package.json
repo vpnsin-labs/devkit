@@ -13,6 +13,8 @@
     "./prettier": "./prettier/index.js",
     "./commitlint": "./commitlint/index.js",
     "./lint-staged": "./lint-staged/index.js",
+    "./jest": "./jest/index.js",
+    "./tsconfig/*": "./tsconfig/*",
     "./package.json": "./package.json"
   },
   "files": [
@@ -20,6 +22,8 @@
     "prettier",
     "commitlint",
     "lint-staged",
+    "jest",
+    "tsconfig",
     "templates",
     "bin",
     "README.md"
