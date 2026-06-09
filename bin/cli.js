@@ -53,6 +53,7 @@ ${c.bold('Options:')}
   --publish      also add the npm publish-on-release workflow (needs NPM_TOKEN)
   --sonar        also add SonarCloud analysis (needs SONAR_TOKEN)
   --lighthouse   also add a Lighthouse CI workflow (web apps)
+  --skills       also add Claude Code skills (e.g. design-craft for UI/UX)
   --force        overwrite existing config/template files
   --no-install   skip installing dev dependencies
   -h, --help     show this help
@@ -215,6 +216,11 @@ copyTemplate('github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/bug
 copyTemplate('github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/feature_request.yml');
 copyTemplate('github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/config.yml');
 copyTemplate('README.template.md', 'README.md'); // only if absent (never clobbers)
+
+if (has('--skills')) {
+  console.log(c.bold('\nClaude Code skills'));
+  copyTemplate('claude/skills/design-craft/SKILL.md', '.claude/skills/design-craft/SKILL.md');
+}
 
 // ── 3. Merge package.json (scripts, prettier key) ───────────────────────────
 console.log(c.bold('\npackage.json'));

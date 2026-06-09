@@ -39,6 +39,7 @@ npx ladevconfig init --jest        # scaffold Jest (ts-jest)
 npx ladevconfig init --vitest      # scaffold Vitest (alternative to Jest)
 npx ladevconfig init --scorecard   # also add the OSSF Scorecard workflow (public repos)
 npx ladevconfig init --lighthouse  # also add a Lighthouse CI workflow (web apps)
+npx ladevconfig init --skills      # also add Claude Code skills (design-craft for UI/UX)
 npx ladevconfig init --publish     # also add npm publish-on-release (needs NPM_TOKEN secret)
 npx ladevconfig init --sonar       # also add SonarCloud analysis (needs SONAR_TOKEN secret)
 npx ladevconfig init --no-install  # scaffold only, install deps yourself
@@ -123,6 +124,7 @@ export default defineConfig(base);
 - **Governance** — `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, PR & issue templates.
 - **EditorConfig** — `templates/editorconfig` (LF, UTF-8, 2-space).
 - **Node version** — `.nvmrc`; CI reads it via `node-version-file`.
+- **Claude Code skills** — `design-craft` (a UX/visual-design protocol); opt-in via `--skills`.
 
 ## Not included (and why)
 
