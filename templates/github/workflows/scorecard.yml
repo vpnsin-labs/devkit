@@ -1,0 +1,41 @@
+name: Scorecard
+
+# OSSF Scorecard — supply-chain security posture (branch protection, pinned
+# actions, token permissions, etc.). Best suited to PUBLIC repos; on private
+# repos it needs a PAT with repo + read:org scopes in `repo_token`.
+# Opt-in: this workflow is NOT installed by `ladevconfig init` by default.
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '0 8 * * 1' # weekly, Mondays 08:00 UTC
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload results to code scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: scorecard

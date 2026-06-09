@@ -1,0 +1,12 @@
+# Code owners are automatically requested for review on matching paths.
+# Docs: https://docs.github.com/articles/about-code-owners
+#
+# Replace @OWNER with your username or team (e.g. @your-org/maintainers).
+
+# Default owner for everything in the repo
+* @OWNER
+
+# Examples — uncomment and adjust:
+# /.github/        @your-org/devops
+# /src/api/        @your-org/backend
+# *.md             @your-org/docs

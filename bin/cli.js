@@ -45,6 +45,7 @@ ${c.bold('Usage:')}  npx ladevconfig init [options]
 ${c.bold('Options:')}
   --next         force the Next.js ESLint preset
   --node         force the base (Node) ESLint preset
+  --scorecard    also add the OSSF Scorecard workflow (public repos)
   --force        overwrite existing config/template files
   --no-install   skip installing dev dependencies
   -h, --help     show this help
@@ -107,19 +108,34 @@ writeFileIfAbsent('commitlint.config.mjs', `export { default } from 'ladevconfig
 writeFileIfAbsent('.lintstagedrc.mjs', `export { default } from 'ladevconfig/lint-staged';\n`);
 
 // ── 2. Copied templates ─────────────────────────────────────────────────────
-console.log(c.bold('\nTemplates'));
+console.log(c.bold('\nEditor & hooks'));
 copyTemplate('husky/pre-commit', '.husky/pre-commit', { executable: true });
 copyTemplate('husky/commit-msg', '.husky/commit-msg', { executable: true });
 copyTemplate('vscode/settings.json', '.vscode/settings.json');
 copyTemplate('vscode/extensions.json', '.vscode/extensions.json');
 copyTemplate('markdownlint-cli2.jsonc', '.markdownlint-cli2.jsonc');
-copyTemplate('github/PULL_REQUEST_TEMPLATE.md', '.github/PULL_REQUEST_TEMPLATE.md');
+
+console.log(c.bold('\nGitHub workflows'));
 copyTemplate('github/workflows/ci.yml', '.github/workflows/ci.yml');
 copyTemplate('github/workflows/codeql.yml', '.github/workflows/codeql.yml');
 copyTemplate('github/workflows/dependency-review.yml', '.github/workflows/dependency-review.yml');
+copyTemplate('github/workflows/trivy.yml', '.github/workflows/trivy.yml');
 copyTemplate('github/workflows/release-please.yml', '.github/workflows/release-please.yml');
 copyTemplate('release-please-config.json', 'release-please-config.json');
 writeFileIfAbsent('.release-please-manifest.json', `${JSON.stringify({ '.': pkg.version || '0.0.0' }, null, 2)}\n`);
+if (has('--scorecard')) {
+  copyTemplate('github/workflows/scorecard.yml', '.github/workflows/scorecard.yml');
+}
+
+console.log(c.bold('\nGovernance & docs'));
+copyTemplate('github/PULL_REQUEST_TEMPLATE.md', '.github/PULL_REQUEST_TEMPLATE.md');
+copyTemplate('github/SECURITY.md', '.github/SECURITY.md');
+copyTemplate('github/CONTRIBUTING.md', '.github/CONTRIBUTING.md');
+copyTemplate('github/CODEOWNERS', '.github/CODEOWNERS');
+copyTemplate('github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/bug_report.yml');
+copyTemplate('github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/feature_request.yml');
+copyTemplate('github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/config.yml');
+copyTemplate('README.template.md', 'README.md'); // only if absent (never clobbers)
 
 // ── 3. Merge package.json (scripts, prettier key) ───────────────────────────
 console.log(c.bold('\npackage.json'));
@@ -192,8 +208,8 @@ try {
 // ── Done ────────────────────────────────────────────────────────────────────
 console.log(`\n${c.green('✓ ladevconfig wired up.')}\n`);
 console.log(`${c.bold('Next steps:')}`);
-console.log(`  1. Review the new files and commit them with a Conventional Commit
-     ${c.dim('e.g. git commit -m "chore: adopt ladevconfig"')}`);
+console.log(`  1. Fill placeholders: ${c.cyan('.github/CODEOWNERS')} (@OWNER) and the security contact in ${c.cyan('.github/SECURITY.md')}.`);
 console.log(`  2. One-time normalise formatting:   ${c.cyan('npm run format')}`);
 console.log(`  3. Verify the gates:                ${c.cyan('npm run lint && npm run type-check && npm run lint:md')}`);
-console.log(`  4. In GitHub repo settings, enable Code scanning, Secret scanning & Dependency graph.\n`);
+console.log(`  4. In GitHub repo settings, enable Code scanning, Secret scanning & Dependency graph.`);
+console.log(`  5. Commit with a Conventional Commit ${c.dim('e.g. git commit -m "chore: adopt ladevconfig"')}\n`);
