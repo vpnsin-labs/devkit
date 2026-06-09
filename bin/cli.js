@@ -45,6 +45,8 @@ ${c.bold('Usage:')}  npx ladevconfig init [options]
 ${c.bold('Options:')}
   --next         force the Next.js ESLint preset
   --node         force the base (Node) ESLint preset
+  --private      private repo: skip GHAS workflows (Dependabot + npm audit instead)
+  --public       public repo: include GHAS workflows (default; auto-detected via gh)
   --jest         also scaffold Jest (ts-jest) config, scripts and deps
   --vitest       also scaffold Vitest config, scripts and deps
   --scorecard    also add the OSSF Scorecard workflow (public repos)
@@ -75,7 +77,29 @@ const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 const isNext = has('--next') ? true : has('--node') ? false : Boolean(allDeps.next);
 const force = has('--force');
 
-console.log(`\n${c.bold('ladevconfig init')} ${c.dim(`(${isNext ? 'Next.js' : 'Node'} preset)`)}\n`);
+// GHAS code scanning (CodeQL/Trivy/Dependency Review/Scorecard) is free only on
+// PUBLIC repos; private repos need a paid licence. Honour --private/--public, or
+// best-effort auto-detect via the gh CLI (defaults to public if we can't tell).
+function detectPrivate() {
+  if (has('--public')) return false;
+  if (has('--private')) return true;
+  try {
+    const out = execSync('gh repo view --json visibility -q .visibility', {
+      cwd: CWD,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim();
+    return out === 'PRIVATE';
+  } catch {
+    return false;
+  }
+}
+const isPrivate = detectPrivate();
+
+console.log(
+  `\n${c.bold('ladevconfig init')} ${c.dim(`(${isNext ? 'Next.js' : 'Node'} preset, ${isPrivate ? 'private' : 'public'} repo)`)}\n`
+);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function ensureDir(file) {
@@ -149,15 +173,26 @@ copyTemplate('nvmrc', '.nvmrc');
 copyTemplate('markdownlint-cli2.jsonc', '.markdownlint-cli2.jsonc');
 
 console.log(c.bold('\nGitHub workflows'));
+// Always free on public + private:
 copyTemplate('github/workflows/ci.yml', '.github/workflows/ci.yml');
-copyTemplate('github/workflows/codeql.yml', '.github/workflows/codeql.yml');
-copyTemplate('github/workflows/dependency-review.yml', '.github/workflows/dependency-review.yml');
-copyTemplate('github/workflows/trivy.yml', '.github/workflows/trivy.yml');
 copyTemplate('github/workflows/release-please.yml', '.github/workflows/release-please.yml');
 copyTemplate('release-please-config.json', 'release-please-config.json');
 writeFileIfAbsent('.release-please-manifest.json', `${JSON.stringify({ '.': pkg.version || '0.0.0' }, null, 2)}\n`);
+copyTemplate('dependabot.yml', '.github/dependabot.yml');
+
+if (isPrivate) {
+  log.info('private repo → skipping GHAS workflows (CodeQL/Trivy/Dependency Review need a paid licence)');
+  log.info('dependency security covered by Dependabot + the npm audit step in ci.yml');
+} else {
+  // GHAS — free on public repos:
+  copyTemplate('github/workflows/codeql.yml', '.github/workflows/codeql.yml');
+  copyTemplate('github/workflows/dependency-review.yml', '.github/workflows/dependency-review.yml');
+  copyTemplate('github/workflows/trivy.yml', '.github/workflows/trivy.yml');
+}
+
 if (has('--scorecard')) {
-  copyTemplate('github/workflows/scorecard.yml', '.github/workflows/scorecard.yml');
+  if (isPrivate) log.info('Scorecard needs a public repo — skipping');
+  else copyTemplate('github/workflows/scorecard.yml', '.github/workflows/scorecard.yml');
 }
 if (has('--publish')) {
   copyTemplate('github/workflows/publish.yml', '.github/workflows/publish.yml');

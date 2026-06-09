@@ -34,6 +34,7 @@ Existing files are left untouched unless you pass `--force`.
 ```bash
 npx ladevconfig init --next        # force the Next.js preset
 npx ladevconfig init --node        # force the base (Node) preset
+npx ladevconfig init --private     # private repo: skip GHAS workflows (auto-detected via gh)
 npx ladevconfig init --jest        # scaffold Jest (ts-jest)
 npx ladevconfig init --vitest      # scaffold Vitest (alternative to Jest)
 npx ladevconfig init --scorecard   # also add the OSSF Scorecard workflow (public repos)
@@ -43,9 +44,21 @@ npx ladevconfig init --sonar       # also add SonarCloud analysis (needs SONAR_T
 npx ladevconfig init --no-install  # scaffold only, install deps yourself
 ```
 
+### Public vs private repos
+
+GitHub Advanced Security — **CodeQL, Trivy, Dependency Review, Scorecard** — is
+free on **public** repos but needs a paid licence on **private** ones. `init`
+auto-detects visibility with the `gh` CLI (override with `--private` / `--public`):
+
+- **Public** → the full GHAS workflow set is scaffolded.
+- **Private** → those GHAS workflows are skipped; you still get **Dependabot**
+  (alerts + grouped update PRs) and a non-blocking **`npm audit`** step in CI for
+  free dependency security. (Enable _Dependabot alerts_ in repo settings.)
+
 `--sonar` adds a CI-based SonarCloud scan and a `sonar-project.properties`.
 Set a `SONAR_TOKEN` secret, fill in your org/project keys, and turn **off**
 Automatic Analysis in SonarCloud (CI and Automatic Analysis can't both run).
+SonarCloud is also free only for public projects.
 
 The `--publish` workflow publishes on a GitHub Release (created when a
 release-please PR is merged). Add an `NPM_TOKEN` repository secret (an npm
