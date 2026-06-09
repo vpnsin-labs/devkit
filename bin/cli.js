@@ -59,7 +59,7 @@ ${c.bold('Options:')}
   --jest         also scaffold Jest (ts-jest) config, scripts and deps
   --vitest       also scaffold Vitest config, scripts and deps
   --scorecard    also add the OSSF Scorecard workflow (public repos)
-  --publish      also add the npm publish-on-release workflow (needs NPM_TOKEN)
+  --publish      auto-publish to npm when the release-please PR merges (needs NPM_TOKEN)
   --sonar        also add SonarCloud analysis (needs SONAR_TOKEN)
   --lighthouse   also add a Lighthouse CI workflow (web apps)
   --skills       also add Claude Code skills (e.g. design-craft for UI/UX)
@@ -250,7 +250,15 @@ copyTemplate('cspell.json', 'cspell.json');
 console.log(c.bold('\nGitHub workflows'));
 // Always free on public + private:
 copyTemplate('github/workflows/ci.yml', '.github/workflows/ci.yml');
-copyTemplate('github/workflows/release-please.yml', '.github/workflows/release-please.yml');
+// With --publish, use the release-please workflow that ALSO publishes to npm when
+// the release PR is merged. (A GITHUB_TOKEN-created release can't trigger a
+// separate on:release workflow, so the publish step must be integrated here.)
+copyTemplate(
+  has('--publish')
+    ? 'github/workflows/release-please-publish.yml'
+    : 'github/workflows/release-please.yml',
+  '.github/workflows/release-please.yml'
+);
 copyTemplate('release-please-config.json', 'release-please-config.json');
 writeFileIfAbsent(
   '.release-please-manifest.json',
@@ -275,6 +283,7 @@ if (has('--scorecard')) {
   else copyTemplate('github/workflows/scorecard.yml', '.github/workflows/scorecard.yml');
 }
 if (has('--publish')) {
+  // Manual recovery workflow; auto-publish lives in release-please.yml (above).
   copyTemplate('github/workflows/publish.yml', '.github/workflows/publish.yml');
 }
 if (has('--sonar')) {

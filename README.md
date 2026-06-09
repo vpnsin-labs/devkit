@@ -106,7 +106,7 @@ npx devkit init --vitest      # scaffold Vitest (alternative to Jest)
 npx devkit init --scorecard   # also add the OSSF Scorecard workflow (public repos)
 npx devkit init --lighthouse  # also add a Lighthouse CI workflow (web apps)
 npx devkit init --skills      # also add Claude Code skills (design-craft for UI/UX)
-npx devkit init --publish     # also add npm publish-on-release (needs NPM_TOKEN secret)
+npx devkit init --publish     # auto-publish to npm when the release PR merges (needs NPM_TOKEN)
 npx devkit init --sonar       # also add SonarCloud analysis (needs SONAR_TOKEN secret)
 npx devkit init --force       # overwrite existing config/template files
 npx devkit init --no-install  # scaffold only, install deps yourself
@@ -128,8 +128,11 @@ Set a `SONAR_TOKEN` secret, fill in your org/project keys, and turn **off**
 Automatic Analysis in SonarCloud (CI and Automatic Analysis can't both run).
 SonarCloud is also free only for public projects.
 
-The `--publish` workflow publishes on a GitHub Release (created when a
-release-please PR is merged). Add an `NPM_TOKEN` repository secret (an npm
+With `--publish`, merging the release-please PR auto-publishes to npm: the publish
+step is integrated into the release-please workflow (a release created with
+`GITHUB_TOKEN` can't trigger a separate `on: release` workflow, so it must live
+there). You also get a manual `Publish (manual)` workflow (`workflow_dispatch`) to
+re-publish if an auto-publish fails. Add an `NPM_TOKEN` repository secret (an npm
 automation token) for it to authenticate.
 
 After running, fill the placeholders in `.github/CODEOWNERS` (`@OWNER`) and the

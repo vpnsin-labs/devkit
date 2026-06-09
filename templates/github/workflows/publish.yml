@@ -1,12 +1,12 @@
-name: Publish to npm
+name: Publish (manual)
 
-# Publishes the package when a GitHub Release is published (release-please
-# creates the release when its PR is merged). Requires an NPM_TOKEN repo secret
-# (an npm automation token). Opt-in: NOT installed by `devkit init` unless
-# you pass --publish. For a private/scoped package, adjust `--access`.
+# Manual npm publish / re-publish of the version currently in package.json.
+# Use to recover a release whose auto-publish failed (e.g. a bad NPM_TOKEN), or
+# to publish out of band. Normal releases publish automatically from the
+# release-please workflow when its PR is merged. Opt-in: only installed by
+# `devkit init --publish`. For a private/scoped package, adjust `--access`.
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
