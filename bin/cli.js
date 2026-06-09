@@ -46,6 +46,7 @@ ${c.bold('Options:')}
   --next         force the Next.js ESLint preset
   --node         force the base (Node) ESLint preset
   --scorecard    also add the OSSF Scorecard workflow (public repos)
+  --publish      also add the npm publish-on-release workflow (needs NPM_TOKEN)
   --force        overwrite existing config/template files
   --no-install   skip installing dev dependencies
   -h, --help     show this help
@@ -125,6 +126,9 @@ copyTemplate('release-please-config.json', 'release-please-config.json');
 writeFileIfAbsent('.release-please-manifest.json', `${JSON.stringify({ '.': pkg.version || '0.0.0' }, null, 2)}\n`);
 if (has('--scorecard')) {
   copyTemplate('github/workflows/scorecard.yml', '.github/workflows/scorecard.yml');
+}
+if (has('--publish')) {
+  copyTemplate('github/workflows/publish.yml', '.github/workflows/publish.yml');
 }
 
 console.log(c.bold('\nGovernance & docs'));

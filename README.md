@@ -35,8 +35,13 @@ Existing files are left untouched unless you pass `--force`.
 npx ladevconfig init --next        # force the Next.js preset
 npx ladevconfig init --node        # force the base (Node) preset
 npx ladevconfig init --scorecard   # also add the OSSF Scorecard workflow (public repos)
+npx ladevconfig init --publish     # also add npm publish-on-release (needs NPM_TOKEN secret)
 npx ladevconfig init --no-install  # scaffold only, install deps yourself
 ```
+
+The `--publish` workflow publishes on a GitHub Release (created when a
+release-please PR is merged). Add an `NPM_TOKEN` repository secret (an npm
+automation token) for it to authenticate.
 
 After running, fill the placeholders in `.github/CODEOWNERS` (`@OWNER`) and the
 security contact in `.github/SECURITY.md`.
