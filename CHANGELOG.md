@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.2](https://github.com/vpnsin/devkit/compare/v0.1.1...v0.1.2) (2026-06-09)
+
+
+### Features
+
+* theme to identify repos ([19425f3](https://github.com/vpnsin/devkit/commit/19425f348e51cda062d39dc6a9bf2508ce4893cd))
+* vscode templates for node dev kits ([7217b6a](https://github.com/vpnsin/devkit/commit/7217b6a43064b7857790da26c881ad2409d0e479))
+
+
+### Bug Fixes
+
+* resolve CodeQL file-system-race and Trivy HEALTHCHECK alerts ([#12](https://github.com/vpnsin/devkit/issues/12)) ([ffea2b3](https://github.com/vpnsin/devkit/commit/ffea2b3bdda92f1c03c7ea0d319257c754a247b4))
+* **templates:** auto-publish to npm when the release PR merges ([#13](https://github.com/vpnsin/devkit/issues/13)) ([97e4ce1](https://github.com/vpnsin/devkit/commit/97e4ce1dd10ef2e724728dc873f68ffd8c8d8512))
+
 ## [0.1.1](https://github.com/vpnsin/devkit/compare/v0.1.0...v0.1.1) (2026-06-09)
 
 
