@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/vpnsin/devkit/compare/v0.1.2...v0.1.3) (2026-06-10)
+
+
+### Bug Fixes
+
+* rename npm package to @vpnsin/devkit ([ddcaad7](https://github.com/vpnsin/devkit/commit/ddcaad787b98e8ae61c5ed24f1f3bf9fb43ab537))
+
 ## [0.1.2](https://github.com/vpnsin/devkit/compare/v0.1.1...v0.1.2) (2026-06-09)
 
 
