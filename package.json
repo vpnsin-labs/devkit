@@ -1,6 +1,6 @@
 {
   "name": "@vpnsin-labs/devkit",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Shared ESLint, Prettier, commitlint, markdownlint, lint-staged, Husky and GitHub CI/release config for Node.js & Next.js repos.",
   "type": "module",
   "prettier": "./prettier/index.js",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/vpnsin-labs/devkit/compare/v0.1.4...v0.1.5) (2026-06-14)
+
+
+### Features
+
+* add temp scratch workspace with MERN format file templates ([#18](https://github.com/vpnsin-labs/devkit/issues/18)) ([c395fb6](https://github.com/vpnsin-labs/devkit/commit/c395fb66ccd7e71c4d0061887c8df4605c95ef85))
+
 ## [0.1.4](https://github.com/vpnsin/devkit/compare/v0.1.3...v0.1.4) (2026-06-10)
 
 
