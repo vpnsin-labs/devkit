@@ -1,16 +1,16 @@
 {
-  "name": "@vpnsin/devkit",
+  "name": "@vpnsin-labs/devkit",
   "version": "0.1.4",
   "description": "Shared ESLint, Prettier, commitlint, markdownlint, lint-staged, Husky and GitHub CI/release config for Node.js & Next.js repos.",
   "type": "module",
   "prettier": "./prettier/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vpnsin/devkit.git"
+    "url": "git+https://github.com/vpnsin-labs/devkit.git"
   },
-  "homepage": "https://github.com/vpnsin/devkit#readme",
+  "homepage": "https://github.com/vpnsin-labs/devkit#readme",
   "bugs": {
-    "url": "https://github.com/vpnsin/devkit/issues"
+    "url": "https://github.com/vpnsin-labs/devkit/issues"
   },
   "bin": {
     "devkit": "bin/cli.js"

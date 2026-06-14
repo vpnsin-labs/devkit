@@ -1,7 +1,7 @@
 # Contributing
 
 Thanks for contributing! This repository uses shared tooling from
-[`devkit`](https://github.com/vpnsin/devkit) — ESLint, Prettier,
+[`devkit`](https://github.com/vpnsin-labs/devkit) — ESLint, Prettier,
 commitlint, markdownlint, Husky, and CI/release workflows.
 
 ## Getting started

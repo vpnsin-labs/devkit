@@ -179,23 +179,29 @@ function writeFileIfAbsent(dest, content) {
 
 // ── 1. Config shims (kept in sync with the package) ─────────────────────────
 console.log(c.bold('Config shims'));
-const eslintPreset = isNext ? '@vpnsin/devkit/eslint/next' : '@vpnsin/devkit/eslint/base';
+const eslintPreset = isNext ? '@vpnsin-labs/devkit/eslint/next' : '@vpnsin-labs/devkit/eslint/base';
 // ESLint (needs jiti) and commitlint both load TypeScript config files natively,
 // so these shims are .ts. lint-staged stays .mjs: its .ts auto-detection is
 // unreliable and would silently break the bare `npx lint-staged` pre-commit hook.
 writeFileIfAbsent('eslint.config.ts', `export { default } from '${eslintPreset}';\n`);
-writeFileIfAbsent('commitlint.config.ts', `export { default } from '@vpnsin/devkit/commitlint';\n`);
-writeFileIfAbsent('.lintstagedrc.mjs', `export { default } from '@vpnsin/devkit/lint-staged';\n`);
+writeFileIfAbsent(
+  'commitlint.config.ts',
+  `export { default } from '@vpnsin-labs/devkit/commitlint';\n`
+);
+writeFileIfAbsent(
+  '.lintstagedrc.mjs',
+  `export { default } from '@vpnsin-labs/devkit/lint-staged';\n`
+);
 
 // TypeScript: scaffold a tsconfig that extends the shared base (only if absent).
 const tsconfigBody = isNext
   ? {
-      extends: '@vpnsin/devkit/tsconfig/next.json',
+      extends: '@vpnsin-labs/devkit/tsconfig/next.json',
       include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
       exclude: ['node_modules'],
     }
   : {
-      extends: '@vpnsin/devkit/tsconfig/node.json',
+      extends: '@vpnsin-labs/devkit/tsconfig/node.json',
       compilerOptions: { outDir: 'dist', rootDir: 'src' },
       include: ['src/**/*.ts'],
       exclude: ['node_modules', 'dist'],
@@ -206,12 +212,12 @@ writeFileIfAbsent('tsconfig.json', `${JSON.stringify(tsconfigBody, null, 2)}\n`)
 // Vitest loads .ts config natively (esbuild). Jest stays .mjs: its ts-node loader
 // transpiles to CJS and cannot re-export devkit's ESM preset from a .ts config.
 if (has('--jest')) {
-  writeFileIfAbsent('jest.config.mjs', `export { default } from '@vpnsin/devkit/jest';\n`);
+  writeFileIfAbsent('jest.config.mjs', `export { default } from '@vpnsin-labs/devkit/jest';\n`);
 }
 if (has('--vitest')) {
   writeFileIfAbsent(
     'vitest.config.ts',
-    `import { defineConfig } from 'vitest/config';\nimport base from '@vpnsin/devkit/vitest';\nexport default defineConfig(base);\n`
+    `import { defineConfig } from 'vitest/config';\nimport base from '@vpnsin-labs/devkit/vitest';\nexport default defineConfig(base);\n`
   );
 }
 
@@ -346,7 +352,7 @@ for (const [k, v] of Object.entries(scripts)) {
   }
 }
 if (!pkg.prettier) {
-  pkg.prettier = '@vpnsin/devkit/prettier';
+  pkg.prettier = '@vpnsin-labs/devkit/prettier';
   changed = true;
   log.add('prettier');
 } else {
@@ -356,7 +362,7 @@ if (changed) writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
 // ── 4. Install dev dependencies ─────────────────────────────────────────────
 const devDeps = [
-  '@vpnsin/devkit',
+  '@vpnsin-labs/devkit',
   'eslint',
   'prettier',
   'husky',
