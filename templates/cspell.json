@@ -8,12 +8,15 @@
     "dotenv",
     "esbenp",
     "lintstagedrc",
+    "humao",
+    "MERN",
     "markdownlint",
     "npmrc",
     "nvmrc",
     "tsup",
     "unconfigured",
-    "vitest"
+    "vitest",
+    "vpnsin"
   ],
   "ignorePaths": [
     "node_modules/**",
