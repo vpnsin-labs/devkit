@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/vpnsin-labs/devkit/compare/v0.1.5...v0.1.6) (2026-06-15)
+
+
+### Bug Fixes
+
+* restore npm package scope to @vpnsin/devkit ([#20](https://github.com/vpnsin-labs/devkit/issues/20)) ([f1b49f0](https://github.com/vpnsin-labs/devkit/commit/f1b49f05c28b2691f8f6cf580646eb607d0e98de))
+
 ## [0.1.5](https://github.com/vpnsin-labs/devkit/compare/v0.1.4...v0.1.5) (2026-06-14)
 
 
