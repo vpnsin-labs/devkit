@@ -1,0 +1,23 @@
+# Scratch — edit freely. `temp/` is git-ignored.
+$Base    = if ($env:BASE_URL) { $env:BASE_URL } else { 'http://localhost:3000' }
+$Token   = $env:TOKEN
+$Headers = if ($Token) { @{ Authorization = "Bearer $Token" } } else { @{} }
+
+# Health check
+Invoke-RestMethod "$Base/health"
+
+# GET list
+# Invoke-RestMethod "$Base/api/items" -Headers $Headers
+
+# POST
+# $body = @{ name = 'example' } | ConvertTo-Json
+# Invoke-RestMethod "$Base/api/items" -Method Post `
+#   -ContentType 'application/json' -Headers $Headers -Body $body
+
+# PATCH
+# $body = @{ name = 'updated' } | ConvertTo-Json
+# Invoke-RestMethod "$Base/api/items/ITEM_ID" -Method Patch `
+#   -ContentType 'application/json' -Headers $Headers -Body $body
+
+# DELETE
+# Invoke-RestMethod "$Base/api/items/ITEM_ID" -Method Delete -Headers $Headers

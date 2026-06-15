@@ -177,6 +177,22 @@ function writeFileIfAbsent(dest, content) {
   log.add(dest);
 }
 
+function ensureGitignoreEntry(entry) {
+  const target = join(CWD, '.gitignore');
+  let current = '';
+  try {
+    current = readFileSync(target, 'utf8');
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
+  if (current.split('\n').some((l) => l.trim() === entry)) {
+    return log.skip(`.gitignore (${entry} already present)`);
+  }
+  const sep = current && !current.endsWith('\n') ? '\n' : '';
+  writeFileSync(target, `${current}${sep}${entry}\n`);
+  log.edit(`.gitignore (+${entry})`);
+}
+
 // ── 1. Config shims (kept in sync with the package) ─────────────────────────
 console.log(c.bold('Config shims'));
 const eslintPreset = isNext ? '@vpnsin/devkit/eslint/next' : '@vpnsin/devkit/eslint/base';
@@ -318,6 +334,24 @@ if (has('--skills')) {
   console.log(c.bold('\nClaude Code skills'));
   copyTemplate('claude/skills/design-craft/SKILL.md', '.claude/skills/design-craft/SKILL.md');
 }
+
+// ── 2c. Scratch workspace ────────────────────────────────────────────────────
+console.log(c.bold('\nScratch workspace (temp/)'));
+for (const f of [
+  'format.js',
+  'format.ts',
+  'format.json',
+  'format.env',
+  'format.log',
+  'format.sh',
+  'format.pwsh',
+  'format.txt',
+  'format.md',
+  'format.http',
+]) {
+  copyTemplate(`temp/${f}`, `temp/${f}`);
+}
+ensureGitignoreEntry('temp/');
 
 // ── 3. Merge package.json (scripts, prettier key) ───────────────────────────
 console.log(c.bold('\npackage.json'));

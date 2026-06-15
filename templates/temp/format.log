@@ -1,0 +1,6 @@
+2026-01-01T00:00:00.000Z  INFO  [server]  Listening on :3000
+2026-01-01T00:00:01.234Z  INFO  [mongo]   Connected to localhost:27017/mydb
+2026-01-01T00:00:02.000Z  DEBUG [router]  GET /health 200 4ms
+2026-01-01T00:00:03.500Z  ERROR [api]     Unhandled error: TypeError: Cannot read properties of undefined
+    at handler (/app/src/routes/users.ts:42:10)
+    at Layer.handle (/app/node_modules/express/lib/router/layer.js:95:5)

@@ -1,0 +1,47 @@
+# Scratch — edit freely. `temp/` is git-ignored.
+# Requires VS Code extension: humao.rest-client
+@host  = http://localhost:3000
+@token = YOUR_TOKEN
+
+### Health
+GET {{host}}/health
+
+###
+
+### List items
+GET {{host}}/api/items
+Authorization: Bearer {{token}}
+
+###
+
+### Get item
+GET {{host}}/api/items/ITEM_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Create item
+POST {{host}}/api/items
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "example"
+}
+
+###
+
+### Update item
+PATCH {{host}}/api/items/ITEM_ID
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "updated"
+}
+
+###
+
+### Delete item
+DELETE {{host}}/api/items/ITEM_ID
+Authorization: Bearer {{token}}

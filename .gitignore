@@ -1,7 +1,9 @@
 node_modules/
 *.log
+!templates/**/*.log
 .DS_Store
 .idea/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+/temp
