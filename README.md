@@ -13,6 +13,11 @@ frontend** so a new repo goes from empty to lint-clean-and-running in one comman
 
 Adopt it in any repo with a single command instead of copy-pasting config.
 
+## Documentation
+
+- [Workflows guide](docs/workflows.md) — CI, release, security scanning, Lighthouse, SonarCloud, Dependabot
+- [Templates guide](docs/templates.md) — every scaffolded file explained with customisation examples
+
 ## Contents
 
 - [Quick start](#quick-start)
