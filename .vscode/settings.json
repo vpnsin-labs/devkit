@@ -86,5 +86,9 @@
     "titleBar.inactiveBackground": "#0ea5e999",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#0EA5E9"
+  "peacock.color": "#0EA5E9",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "vip-sin",
+    "projectKey": "YOUR_ORG_YOUR_REPO"
+  }
 }
