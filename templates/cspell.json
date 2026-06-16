@@ -8,6 +8,8 @@
     "dotenv",
     "esbenp",
     "lintstagedrc",
+    "humao",
+    "MERN",
     "markdownlint",
     "npmrc",
     "nvmrc",
