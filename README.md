@@ -1,9 +1,9 @@
 # devkit
 
-[![npm version](https://img.shields.io/npm/v/@vpnsin/devkit.svg)](https://www.npmjs.com/package/@vpnsin/devkit)
-[![npm downloads](https://img.shields.io/npm/dm/@vpnsin/devkit.svg)](https://www.npmjs.com/package/@vpnsin/devkit)
-[![license: MIT](https://img.shields.io/npm/l/@vpnsin/devkit.svg)](https://www.npmjs.com/package/@vpnsin/devkit)
-[![node](https://img.shields.io/node/v/@vpnsin/devkit.svg)](https://www.npmjs.com/package/@vpnsin/devkit)
+[![npm version](https://img.shields.io/npm/v/@vpnsin-labs/devkit.svg)](https://www.npmjs.com/package/@vpnsin-labs/devkit)
+[![npm downloads](https://img.shields.io/npm/dm/@vpnsin-labs/devkit.svg)](https://www.npmjs.com/package/@vpnsin-labs/devkit)
+[![license: MIT](https://img.shields.io/npm/l/@vpnsin-labs/devkit.svg)](https://www.npmjs.com/package/@vpnsin-labs/devkit)
+[![node](https://img.shields.io/node/v/@vpnsin-labs/devkit.svg)](https://www.npmjs.com/package/@vpnsin-labs/devkit)
 
 Shared development tooling for Node.js & Next.js repos — one source of truth for
 **ESLint, Prettier, commitlint, markdownlint, lint-staged, Husky hooks, TypeScript,
@@ -36,7 +36,7 @@ Adopt it in any repo with a single command instead of copy-pasting config.
 
 ```bash
 # in the target repo (must contain a package.json)
-npm i -D @vpnsin/devkit
+npm i -D @vpnsin-labs/devkit
 npx devkit init
 ```
 
@@ -53,7 +53,10 @@ npx devkit init
   `README.md` skeleton if one is missing;
 - add npm **scripts** (`lint`, `lint:fix`, `lint:md`, `format`, `format:check`,
   `type-check`, `prepare`);
-- install the required dev dependencies and set up Husky.
+- install the required dev dependencies and set up Husky;
+- scaffold a **`temp/`** scratch workspace (gitignored) with starter files for
+  fullstack MERN dev: `format.js`, `.ts`, `.json`, `.env`, `.log`, `.sh`,
+  `.pwsh`, `.txt`, `.md`, `.http`.
 
 Existing files are left untouched unless you pass `--force`.
 
@@ -149,40 +152,40 @@ Each config is also importable directly:
 
 ```ts
 // eslint.config.ts  (needs the `jiti` devDependency to load TS config)
-export { default } from '@vpnsin/devkit/eslint/next'; // or '@vpnsin/devkit/eslint/base'
+export { default } from '@vpnsin-labs/devkit/eslint/next'; // or '@vpnsin-labs/devkit/eslint/base'
 
 // extend it:
-import base from '@vpnsin/devkit/eslint/base';
+import base from '@vpnsin-labs/devkit/eslint/base';
 export default [...base, { rules: { 'no-console': 'off' } }];
 ```
 
 ```jsonc
 // package.json
-{ "prettier": "@vpnsin/devkit/prettier" }
+{ "prettier": "@vpnsin-labs/devkit/prettier" }
 ```
 
 ```ts
 // commitlint.config.ts
-export { default } from '@vpnsin/devkit/commitlint';
+export { default } from '@vpnsin-labs/devkit/commitlint';
 
 // vitest.config.ts (alternative to Jest)
 import { defineConfig } from 'vitest/config';
-import base from '@vpnsin/devkit/vitest';
+import base from '@vpnsin-labs/devkit/vitest';
 export default defineConfig(base);
 ```
 
 ```js
 // .lintstagedrc.mjs  (stays .mjs — .ts breaks the bare `npx lint-staged` hook)
-export { default } from '@vpnsin/devkit/lint-staged';
+export { default } from '@vpnsin-labs/devkit/lint-staged';
 
 // jest.config.mjs (Node + ts-jest; stays .mjs — ts-node can't re-export the ESM preset)
-export { default } from '@vpnsin/devkit/jest';
+export { default } from '@vpnsin-labs/devkit/jest';
 ```
 
 ```jsonc
 // tsconfig.json — extend a shared base (base / node / next)
 {
-  "extends": "@vpnsin/devkit/tsconfig/node.json",
+  "extends": "@vpnsin-labs/devkit/tsconfig/node.json",
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"],
 }
@@ -190,13 +193,13 @@ export { default } from '@vpnsin/devkit/jest';
 
 ## What's inside
 
-- **ESLint** — `@vpnsin/devkit/eslint/base` (Node) / `@vpnsin/devkit/eslint/next`
+- **ESLint** — `@vpnsin-labs/devkit/eslint/base` (Node) / `@vpnsin-labs/devkit/eslint/next`
   (base + `eslint-config-next`). Flat config: JS + typescript-eslint + Prettier.
-- **Prettier** — `@vpnsin/devkit/prettier` (100 width, single quotes, es5 commas).
-- **commitlint** — `@vpnsin/devkit/commitlint` (Conventional Commits).
-- **lint-staged** — `@vpnsin/devkit/lint-staged` (ESLint/Prettier/markdownlint on staged files).
-- **TypeScript** — `@vpnsin/devkit/tsconfig/{base,node,next}.json` (strict base + Node/Next variants).
-- **Jest / Vitest** — `@vpnsin/devkit/jest` (ts-jest) or `@vpnsin/devkit/vitest`; opt-in via `--jest` / `--vitest`.
+- **Prettier** — `@vpnsin-labs/devkit/prettier` (100 width, single quotes, es5 commas).
+- **commitlint** — `@vpnsin-labs/devkit/commitlint` (Conventional Commits).
+- **lint-staged** — `@vpnsin-labs/devkit/lint-staged` (ESLint/Prettier/markdownlint on staged files).
+- **TypeScript** — `@vpnsin-labs/devkit/tsconfig/{base,node,next}.json` (strict base + Node/Next variants).
+- **Jest / Vitest** — `@vpnsin-labs/devkit/jest` (ts-jest) or `@vpnsin-labs/devkit/vitest`; opt-in via `--jest` / `--vitest`.
 - **App starters** — `--backend` (Express + TS) / `--frontend` (Next.js App Router + TS).
 - **GitHub workflows** — CI, CodeQL, dependency review, Trivy, release-please; opt-in: Scorecard, Lighthouse, npm-publish, SonarCloud.
 - **Governance** — `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, PR & issue templates.
@@ -211,7 +214,7 @@ export { default } from '@vpnsin/devkit/jest';
 | Area                                         | Source template                                            | Purpose                                                        |
 | -------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
 | ESLint / Prettier / commitlint / lint-staged | shims re-exporting the package                             | flat ESLint, Prettier, Conventional Commits, staged-file lint  |
-| TypeScript                                   | `tsconfig.json` extending `@vpnsin/devkit/tsconfig/*`      | strict base + Node/Next variant                                |
+| TypeScript                                   | `tsconfig.json` extending `@vpnsin-labs/devkit/tsconfig/*` | strict base + Node/Next variant                                |
 | Backend app                                  | `templates/app/backend/*`                                  | Express + TS skeleton, Dockerfile (opt-in, `--backend`)        |
 | Frontend app                                 | `templates/app/frontend/*`                                 | Next.js App Router + TS skeleton (opt-in, `--frontend`)        |
 | markdownlint                                 | `templates/markdownlint-cli2.jsonc`                        | tuned to coexist with Prettier                                 |
@@ -224,6 +227,7 @@ export { default } from '@vpnsin/devkit/jest';
 | Releases                                     | `release-please.yml` + config                              | semantic version bumps, tags & changelog                       |
 | Governance                                   | `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, templates  | project docs & review routing                                  |
 | Editor                                       | `templates/vscode/*`                                       | format + ESLint/markdownlint fix on save                       |
+| Scratch workspace                            | `templates/temp/*`                                         | gitignored `temp/` with 10 MERN-format starter files           |
 
 ## Recommended VS Code extensions
 
@@ -273,6 +277,7 @@ breaks if you skip one. Grouped by what they do:
 **File-type support shipped by this scaffold**:
 
 - `mikestead.dotenv` — syntax highlighting for `.env` / `.env.example`.
+- `humao.rest-client` — send HTTP requests from `.http` files (pairs with `temp/format.http`).
 - `redhat.vscode-yaml` — schema-aware YAML (workflows, Dependabot, etc.).
 - `github.vscode-github-actions` — validate & run GitHub Actions workflows.
 
@@ -319,5 +324,5 @@ npm version <patch|minor|major>
 npm publish        # publishConfig.access is "public"
 ```
 
-Consumers pick up changes with `npm update devkit` (shims) — template files
+Consumers pick up changes with `npm update @vpnsin-labs/devkit` (shims) — template files
 are re-synced by re-running `npx devkit init --force`.

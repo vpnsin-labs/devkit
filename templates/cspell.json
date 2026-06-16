@@ -12,8 +12,11 @@
     "npmrc",
     "nvmrc",
     "tsup",
+    "humao",
+    "MERN",
     "unconfigured",
-    "vitest"
+    "vitest",
+    "vpnsin"
   ],
   "ignorePaths": [
     "node_modules/**",

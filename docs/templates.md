@@ -238,13 +238,13 @@ A thin file that extends the shared devkit base:
 
 ```jsonc
 // Node project
-{ "extends": "@vpnsin/devkit/tsconfig/node.json",
+{ "extends": "@vpnsin-labs/devkit/tsconfig/node.json",
   "compilerOptions": { "outDir": "dist", "rootDir": "src" },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"] }
 
 // Next.js project
-{ "extends": "@vpnsin/devkit/tsconfig/next.json",
+{ "extends": "@vpnsin-labs/devkit/tsconfig/next.json",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"] }
 ```
@@ -265,7 +265,7 @@ To override any setting, add it directly to your project's `tsconfig.json`:
 
 ```jsonc
 {
-  "extends": "@vpnsin/devkit/tsconfig/node.json",
+  "extends": "@vpnsin-labs/devkit/tsconfig/node.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
@@ -291,10 +291,10 @@ A thin shim re-exporting the shared flat config:
 
 ```ts
 // Node project
-export { default } from '@vpnsin/devkit/eslint/base';
+export { default } from '@vpnsin-labs/devkit/eslint/base';
 
 // Next.js project
-export { default } from '@vpnsin/devkit/eslint/next';
+export { default } from '@vpnsin-labs/devkit/eslint/next';
 ```
 
 **What the base config includes:**
@@ -310,7 +310,7 @@ The `next` config adds `eslint-config-next` on top of the base.
 
 ```ts
 // eslint.config.ts
-import base from '@vpnsin/devkit/eslint/base';
+import base from '@vpnsin-labs/devkit/eslint/base';
 export default [
   ...base,
   {
@@ -349,7 +349,7 @@ via `npm update`:
 
 ```jsonc
 // package.json
-{ "prettier": "@vpnsin/devkit/prettier" }
+{ "prettier": "@vpnsin-labs/devkit/prettier" }
 ```
 
 **Shared Prettier settings:**
@@ -369,7 +369,7 @@ file:
 
 ```js
 // prettier.config.js
-import base from '@vpnsin/devkit/prettier';
+import base from '@vpnsin-labs/devkit/prettier';
 export default { ...base, printWidth: 120 };
 ```
 
@@ -381,7 +381,7 @@ export default { ...base, printWidth: 120 };
 **Installed:** always
 
 ```ts
-export { default } from '@vpnsin/devkit/commitlint';
+export { default } from '@vpnsin-labs/devkit/commitlint';
 ```
 
 Re-exports `@commitlint/config-conventional`, which enforces the
@@ -392,7 +392,7 @@ Re-exports `@commitlint/config-conventional`, which enforces the
 
 ```ts
 // commitlint.config.ts
-import base from '@vpnsin/devkit/commitlint';
+import base from '@vpnsin-labs/devkit/commitlint';
 export default {
   ...base,
   rules: {
@@ -410,7 +410,7 @@ export default {
 **Installed:** always
 
 ```js
-export { default } from '@vpnsin/devkit/lint-staged';
+export { default } from '@vpnsin-labs/devkit/lint-staged';
 ```
 
 Runs linters only on files staged for commit. The shared preset applies:
@@ -425,7 +425,7 @@ Runs linters only on files staged for commit. The shared preset applies:
 
 ```js
 // .lintstagedrc.mjs
-import base from '@vpnsin/devkit/lint-staged';
+import base from '@vpnsin-labs/devkit/lint-staged';
 export default {
   ...base,
   '*.{graphql,gql}': ['prettier --write'],
@@ -445,7 +445,7 @@ export default {
 **Scripts added:** `test`, `test:watch`, `test:coverage`
 
 ```js
-export { default } from '@vpnsin/devkit/jest';
+export { default } from '@vpnsin-labs/devkit/jest';
 ```
 
 The shared Jest preset uses [ts-jest](https://kulshekhar.github.io/ts-jest/) to run
@@ -464,7 +464,7 @@ TypeScript tests natively without a separate build step.
 
 ```js
 // jest.config.mjs
-import base from '@vpnsin/devkit/jest';
+import base from '@vpnsin-labs/devkit/jest';
 export default {
   ...base,
   testEnvironment: 'jsdom',          // for browser/React tests
@@ -492,7 +492,7 @@ export default {
 
 ```ts
 import { defineConfig } from 'vitest/config';
-import base from '@vpnsin/devkit/vitest';
+import base from '@vpnsin-labs/devkit/vitest';
 export default defineConfig(base);
 ```
 
@@ -509,7 +509,7 @@ The shared Vitest preset is a plain config object (`InlineConfig`) that merges w
 
 ```ts
 import { defineConfig, mergeConfig } from 'vitest/config';
-import base from '@vpnsin/devkit/vitest';
+import base from '@vpnsin-labs/devkit/vitest';
 export default mergeConfig(defineConfig(base), defineConfig({
   test: {
     environment: 'jsdom',
