@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/vpnsin-labs/devkit/compare/v0.2.0...v0.2.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* allow publish re-run via workflow_dispatch after NPM_TOKEN rotation ([#26](https://github.com/vpnsin-labs/devkit/issues/26)) ([5d90c15](https://github.com/vpnsin-labs/devkit/commit/5d90c15a9b5f9d36d48e58e51edec2cee9d3f04d))
+
 ## [0.2.0](https://github.com/vpnsin-labs/devkit/compare/v0.1.6...v0.2.0) (2026-06-16)
 
 
