@@ -51,6 +51,8 @@ npx devkit init
   dependency review, Trivy, release-please) and **governance** (PR template,
   `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, issue templates), plus a
   `README.md` skeleton if one is missing;
+- create a **`temp/`** scratch workspace (git-ignored) stocked with format
+  starter files for every common file type used in MERN development;
 - add npm **scripts** (`lint`, `lint:fix`, `lint:md`, `format`, `format:check`,
   `type-check`, `prepare`);
 - install the required dev dependencies and set up Husky.
@@ -204,6 +206,7 @@ export { default } from '@vpnsin/devkit/jest';
 - **npm config** — `.npmrc` (`engine-strict`, quieter installs; optional exact pins).
 - **Spell check** — `cspell.json` for the recommended Code Spell Checker extension.
 - **Node version** — `.nvmrc`; CI reads it via `node-version-file`.
+- **Scratch workspace** — `temp/` (git-ignored) with format starter files for JS, TS, JSON, env, log, shell, PowerShell, plain text, Markdown, and HTTP requests.
 - **Claude Code skills** — `design-craft` (a UX/visual-design protocol); opt-in via `--skills`.
 
 ## What gets scaffolded
@@ -224,6 +227,7 @@ export { default } from '@vpnsin/devkit/jest';
 | Releases                                     | `release-please.yml` + config                              | semantic version bumps, tags & changelog                       |
 | Governance                                   | `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, templates  | project docs & review routing                                  |
 | Editor                                       | `templates/vscode/*`                                       | format + ESLint/markdownlint fix on save                       |
+| Scratch workspace                            | `templates/temp/*`                                         | git-ignored `temp/` with format starters for 10 file types     |
 
 ## Recommended VS Code extensions
 
@@ -275,6 +279,7 @@ breaks if you skip one. Grouped by what they do:
 - `mikestead.dotenv` — syntax highlighting for `.env` / `.env.example`.
 - `redhat.vscode-yaml` — schema-aware YAML (workflows, Dependabot, etc.).
 - `github.vscode-github-actions` — validate & run GitHub Actions workflows.
+- `humao.rest-client` — send HTTP requests from `temp/format.http` directly in VS Code.
 
 **Markdown & docs**:
 
@@ -319,5 +324,5 @@ npm version <patch|minor|major>
 npm publish        # publishConfig.access is "public"
 ```
 
-Consumers pick up changes with `npm update devkit` (shims) — template files
+Consumers pick up changes with `npm update @vpnsin/devkit` (shims) — template files
 are re-synced by re-running `npx devkit init --force`.
