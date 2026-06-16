@@ -110,7 +110,7 @@ Both are granted in the workflow and require no extra configuration.
 
 **File:** `.github/workflows/release-please-publish.yml`
 **Installed:** when `devkit init --publish` is used (replaces `release-please.yml`)
-**Triggers:** push to `main`
+**Triggers:** push to `main`, `workflow_dispatch`
 
 Extends [Release Please](#release-please) with an automated npm publish step that
 runs immediately after the release PR is merged.
@@ -119,7 +119,7 @@ runs immediately after the release PR is merged.
 GitHub Actions does not trigger workflows from events created by `GITHUB_TOKEN`. A
 release created by release-please would never fire an `on: release` workflow. The
 publish step therefore lives inside this workflow, gated by
-`if: ${{ steps.release.outputs.release_created }}`.
+`if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}`.
 
 **Flow:**
 
@@ -129,6 +129,10 @@ push to main
         ├── (no release yet) → update/open release PR, stop
         └── (release PR just merged) → create tag + GitHub Release
               └── checkout → setup-node → npm ci → build → npm publish --provenance
+
+workflow_dispatch (manual re-trigger)
+  └── release-please-action (no-op, release already exists)
+        └── checkout → setup-node → npm ci → build → npm publish --provenance
 ```
 
 **Requirements:**
@@ -146,6 +150,27 @@ push to main
 | Add a pre-publish build step | The `Build` step (`npm run build --if-present`) already covers this |
 | Pin the release-please version | Change `@v5` to a specific SHA |
 
+### Recovering from a failed publish (expired NPM_TOKEN)
+
+When the publish step fails because `NPM_TOKEN` is expired, the GitHub release and
+git tag are already created — re-running the workflow via the "Re-run failed jobs"
+button skips the publish because `release_created` is now `false`.
+
+Correct recovery procedure:
+
+1. Go to the npm website → **Access Tokens** → **Generate New Token** →
+   choose **Automation** (bypasses 2FA for CI).
+2. Update the `NPM_TOKEN` secret in GitHub (repo or org → Settings → Secrets →
+   Actions).
+3. Go to **Actions → Release Please → Run workflow** (the `workflow_dispatch`
+   trigger). The release-please step runs as a no-op; the publish step runs
+   unconditionally because the event is `workflow_dispatch`.
+
+> **Why not "Re-run failed jobs"?** That button re-runs the same event (`push`).
+> On re-run, release-please finds the release already exists and sets
+> `release_created: false`, skipping publish. The `workflow_dispatch` trigger
+> bypasses this because its condition is checked independently of `release_created`.
+
 ---
 
 ## Publish — manual
@@ -154,17 +179,17 @@ push to main
 **Installed:** when `devkit init --publish` is used (alongside the release-please variant)
 **Triggers:** `workflow_dispatch` (manual, from GitHub Actions UI)
 
-A recovery workflow. Use it to re-publish the current `package.json` version when
-auto-publish from release-please failed (for example, after rotating an expired
-`NPM_TOKEN`).
+A standalone recovery workflow. Use it as an alternative to re-triggering the
+release-please workflow when auto-publish failed. It publishes whatever version is
+currently in `package.json` with no release-please involvement.
 
 **How to trigger:**
 GitHub → Actions → **Publish (manual)** → **Run workflow**.
 
 No inputs are required. It publishes whatever version is currently in `package.json`.
 
-> If the version was already published and you re-run this, npm will return a 409
-> conflict. Bump the version first if you need to re-publish.
+> If the version is already published on npm, npm will return a 409 conflict.
+> This means the publish already succeeded — no action needed.
 
 ---
 
