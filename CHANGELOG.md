@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/vpnsin-labs/devkit/compare/v0.1.6...v0.2.0) (2026-06-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* package published under @vpnsin-labs/devkit instead of @vpnsin/devkit. Consumers must update their dependency:
+
+### Features
+
+* rename npm package to @vpnsin-labs/devkit ([#24](https://github.com/vpnsin-labs/devkit/issues/24)) ([055162f](https://github.com/vpnsin-labs/devkit/commit/055162f068ba8b29ed790b05df26c5e858386352))
+
 ## [0.1.6](https://github.com/vpnsin-labs/devkit/compare/v0.1.5...v0.1.6) (2026-06-15)
 
 
