@@ -293,6 +293,9 @@ if (isPrivate) {
     'private repo → skipping GHAS workflows (CodeQL/Trivy/Dependency Review need a paid licence)'
   );
   log.info('dependency security covered by Dependabot + the npm audit step in ci.yml');
+  log.info(
+    'Actions minutes are metered on private repos — workflows ship with timeout-minutes + concurrency caps to limit spend'
+  );
 } else {
   // GHAS — free on public repos:
   copyTemplate('github/workflows/codeql.yml', '.github/workflows/codeql.yml');

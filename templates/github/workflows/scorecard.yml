@@ -14,10 +14,17 @@ on:
 permissions:
   contents: read
 
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: scorecard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
+    # Hard cap so a hung analysis can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 15
     permissions:
       security-events: write
       id-token: write
