@@ -14,10 +14,17 @@ on:
 permissions:
   contents: read
 
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: trivy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scan:
     name: Filesystem scan
     runs-on: ubuntu-latest
+    # Hard cap so a hung scan can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 20
     permissions:
       contents: read
       security-events: write # upload SARIF to code scanning

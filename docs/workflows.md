@@ -8,6 +8,7 @@ every workflow, what it does, when it runs, and how to customise it.
 
 ## Contents
 
+- [Actions usage & cost controls](#actions-usage--cost-controls)
 - [CI (`ci.yml`)](#ci)
 - [Release Please (`release-please.yml`)](#release-please)
 - [Release Please + npm Publish (`release-please-publish.yml`)](#release-please--npm-publish)
@@ -19,6 +20,64 @@ every workflow, what it does, when it runs, and how to customise it.
 - [Lighthouse CI (`lighthouse.yml`)](#lighthouse-ci)
 - [SonarCloud (`sonarqube.yml`)](#sonarcloud)
 - [Dependabot (`dependabot.yml`)](#dependabot)
+
+---
+
+## Actions usage & cost controls
+
+GitHub Actions minutes are **free and unlimited on public repos** but **metered
+against a monthly quota on private repos** (Free: 2,000 min/mo, Team: 3,000,
+Enterprise: 50,000; the minute allowance resets at the start of each billing
+cycle). To keep private repos inside that quota, every scaffolded workflow ships
+with two restrictions. Both are harmless on public repos, so they apply regardless
+of visibility.
+
+### `timeout-minutes` — runaway protection
+
+Every job sets a `timeout-minutes` cap. Without it a job inherits the **6-hour
+(360-minute) default**, so a single hung step — a frozen install, a server that
+never becomes ready, a test that deadlocks — can silently burn hundreds of
+metered minutes before GitHub kills it. The caps are generous (well above normal
+run times) but bounded:
+
+| Workflow | Job | `timeout-minutes` |
+| --- | --- | :---: |
+| CI (`ci.yml`) | quality | 15 |
+| Release Please (`release-please.yml`) | release-please | 10 |
+| Release Please + Publish (`release-please-publish.yml`) | release-please | 15 |
+| Publish (`publish.yml`) | publish | 15 |
+| CodeQL (`codeql.yml`) | analyze | 30 |
+| Dependency Review (`dependency-review.yml`) | dependency-review | 10 |
+| Trivy (`trivy.yml`) | scan | 20 |
+| Scorecard (`scorecard.yml`) | analysis | 15 |
+| SonarCloud (`sonarqube.yml`) | sonarcloud | 15 |
+| Lighthouse (`lighthouse.yml`) | lighthouse | 20 |
+
+If a job legitimately needs longer (a large monorepo build, a slow E2E suite),
+raise its `timeout-minutes`. If a job is consistently fast, lower it to fail
+faster and waste fewer minutes when something hangs.
+
+### `concurrency` — cancel superseded runs
+
+Each workflow declares a `concurrency` group so overlapping runs don't stack up
+billable minutes:
+
+- **Push/PR scans** (CI, CodeQL, Trivy, Dependency Review, Scorecard, SonarCloud,
+  Lighthouse) use `cancel-in-progress: true` keyed on the ref. Pushing again while
+  a run is in flight cancels the older run — only the latest commit is checked.
+- **Release & publish** (Release Please, Publish) use `cancel-in-progress: false`,
+  so an in-progress run is **never cancelled** — cancelling mid-`npm publish` could
+  leave a release half-finished. Each serializes runs _within its own workflow_;
+  the manual `publish.yml` deliberately uses a separate group so it can still run
+  as a recovery path even if a release run is stuck (npm rejects a duplicate
+  version with a 409, so an accidental double-publish fails harmlessly).
+
+> **Other levers (not enabled by default).** `paths-ignore`/`paths` can skip CI
+> for changes that don't affect it — but devkit's CI lints Markdown, YAML and JSON
+> (`lint:md`, `format:check`), so a blanket `paths-ignore: ['**.md']` would skip
+> those gates. Add path filters only for paths CI genuinely ignores (images,
+> `LICENSE`). A `dev` branch trigger that you don't use can also be dropped from
+> the `on:` lists to halve trigger surface.
 
 ---
 
@@ -51,7 +110,10 @@ Key design decisions:
   Private repos without GitHub Advanced Security (GHAS) get this as their free
   dependency-security check.
 - **`concurrency`** — a push to a branch while CI is already running cancels the
-  older run, keeping queues short.
+  older run, keeping queues short and saving Actions minutes (see
+  [Actions usage & cost controls](#actions-usage--cost-controls)).
+- **`timeout-minutes: 15`** — a hard cap on the job so a hung step can't drain a
+  private repo's metered Actions minutes (the default would be 6 hours).
 - **`node-version-file: .nvmrc`** — the Node version is a single source of truth in
   `.nvmrc`; CI, local development, and Docker all read from it.
 
@@ -63,6 +125,7 @@ Key design decisions:
 | Make `npm audit` block merges | Remove `continue-on-error: true` |
 | Add a coverage upload step | Append a step after `test` |
 | Change the Node version | Edit `.nvmrc`; CI picks it up automatically |
+| Allow longer (or shorter) runs | Adjust `timeout-minutes` on the `quality` job |
 
 ---
 

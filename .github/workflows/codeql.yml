@@ -11,10 +11,17 @@ on:
 permissions:
   contents: read
 
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze (javascript-typescript)
     runs-on: ubuntu-latest
+    # Hard cap so a hung analysis can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 30
     permissions:
       security-events: write
       actions: read
