@@ -11,10 +11,17 @@ on:
 permissions:
   contents: read
 
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: lighthouse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
+    # Hard cap so a hung job can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6

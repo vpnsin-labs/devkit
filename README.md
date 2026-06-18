@@ -133,6 +133,18 @@ auto-detects visibility with the `gh` CLI (override with `--private` / `--public
   (alerts + grouped update PRs) and a non-blocking **`npm audit`** step in CI for
   free dependency security. (Enable _Dependabot alerts_ in repo settings.)
 
+GitHub Actions minutes are also metered on private repos (public repos run free),
+so every scaffolded workflow ships with two cost-control restrictions to keep
+runs inside the monthly quota:
+
+- **`timeout-minutes`** on every job — a hard cap (the default is 6 hours, so a
+  single hung job can otherwise drain hundreds of metered minutes).
+- **`concurrency`** — push/PR scans auto-cancel superseded runs
+  (`cancel-in-progress: true`); release/publish runs serialize but are never
+  cancelled mid-flight (`cancel-in-progress: false`).
+
+These caps are harmless on public repos and apply regardless of visibility.
+
 `--sonar` adds a CI-based SonarCloud scan and a `sonar-project.properties`.
 Set a `SONAR_TOKEN` secret, fill in your org/project keys, and turn **off**
 Automatic Analysis in SonarCloud (CI and Automatic Analysis can't both run).

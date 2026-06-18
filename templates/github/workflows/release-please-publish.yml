@@ -20,9 +20,16 @@ permissions:
   pull-requests: write
   id-token: write # npm provenance
 
+# Serialize release/publish runs per ref; never cancel one mid-flight (cancel-in-progress: false).
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # Hard cap so a hung job can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 15
     steps:
       - name: Run release-please
         id: release
