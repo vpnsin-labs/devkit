@@ -1,0 +1,171 @@
+# governance.config.yml — input for `devkit govern` (the imperative companion to
+# safe-settings). Every field is OPTIONAL and deep-merged over devkit's
+# industry-standard defaults, so you only declare what you want to change.
+#
+# Run:
+#   devkit govern doctor                 # verify token + scopes
+#   devkit govern apply --all --dry-run  # preview changes across the org
+#   devkit govern create my-service      # create + configure a new repo
+#
+# Secret/variable VALUES are never stored here — they are read from environment
+# variables at apply time (see `secrets:` below).
+
+org: YOUR_ORG
+defaultBranch: main
+
+# Default metadata applied to repos created with `devkit govern create`.
+# description: 'A service in the platform'
+# topics: [typescript, service]
+# template: YOUR_ORG/node-template   # create new repos from this template repo
+
+# ── Repository settings (PATCH /repos) ──────────────────────────────────────
+repository:
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+  allow_auto_merge: true
+  delete_branch_on_merge: true
+  allow_update_branch: true
+  squash_merge_commit_title: PR_TITLE
+  squash_merge_commit_message: PR_BODY
+  web_commit_signoff_required: true
+
+# Visibility/init defaults for newly CREATED repos.
+repositoryCreate:
+  private: true
+  auto_init: true
+
+# ── Branch protection mechanism: 'ruleset' (recommended) | 'branch-protection' | 'both'
+protectionMode: ruleset
+
+ruleset:
+  name: main-protection
+  target: branch
+  enforcement: active
+  bypass_actors: []
+  conditions:
+    ref_name:
+      include: ['~DEFAULT_BRANCH']
+      exclude: []
+  rules:
+    - type: deletion
+    - type: non_fast_forward
+    - type: required_linear_history
+    - type: pull_request
+      parameters:
+        required_approving_review_count: 1 # 2 for OpenSSF 10/10
+        dismiss_stale_reviews_on_push: true
+        require_code_owner_review: true
+        require_last_push_approval: false
+        required_review_thread_resolution: true
+    - type: required_status_checks
+      parameters:
+        strict_required_status_checks_policy: true
+        required_status_checks: [] # e.g. [{ context: build }]
+
+# Classic branch protection (used when protectionMode is branch-protection/both).
+# branchProtection:
+#   required_pull_request_reviews:
+#     required_approving_review_count: 1
+#     dismiss_stale_reviews: true
+#     require_code_owner_reviews: true
+#   required_status_checks: { strict: true, checks: [] }
+#   enforce_admins: false
+#   required_linear_history: true
+#   allow_force_pushes: false
+#   allow_deletions: false
+#   required_conversation_resolution: true
+#   required_signatures: false
+#   restrictions: null
+
+# ── Labels: omit to use devkit's full 18-label taxonomy ──────────────────────
+# NOTE: arrays REPLACE (they don't merge). Defining `labels:` here discards the
+# defaults — re-list every label you want, not just additions. Same for `ruleset.rules`.
+# labels:
+#   - { name: 'type: bug', color: 'd73a4a', description: "Something isn't working" }
+
+# ── Access (teams/collaborators get repo permission; teams must exist in org) ─
+teams:
+  - { name: maintainers, permission: admin }
+  - { name: engineers, permission: push }
+  - { name: triage, permission: triage }
+# collaborators:
+#   - { username: octocat, permission: push, include: ['svc-*'] }
+
+# ── Per-repo security toggles ────────────────────────────────────────────────
+security:
+  vulnerabilityAlerts: true # dependency graph + Dependabot alerts (free)
+  automatedSecurityFixes: true # Dependabot security update PRs (free)
+  privateVulnerabilityReporting: true # free
+  codeScanningDefaultSetup: true # CodeQL (free on public; needs licence on private)
+  codeScanningQuerySuite: default # default | extended
+  secretScanning: true
+  secretScanningPushProtection: true
+
+# ── Org-level code-security CONFIGURATION (fleet rollout via `devkit govern org`)
+# advanced_security is omitted so this attaches cleanly to public repos. For
+# orgs with GitHub Code Security / Secret Protection on private repos, add
+# `advanced_security: enabled` (or granular code_security/secret_protection).
+securityConfiguration:
+  name: 'Org Security Baseline'
+  description: 'Managed by devkit govern'
+  dependency_graph: enabled
+  dependabot_alerts: enabled
+  dependabot_security_updates: enabled
+  code_scanning_default_setup: enabled
+  secret_scanning: enabled
+  secret_scanning_push_protection: enabled
+  private_vulnerability_reporting: enabled
+  enforcement: enforced
+  # advanced_security: enabled   # uncomment for licensed private/internal repos
+securityConfigurationRollout:
+  attachScope: all_without_configurations # all | all_without_configurations | public | private_or_internal | selected
+  defaultForNewRepos: all # all | none | private_and_internal | public
+
+# ── Organization settings (applied by `devkit govern org`) ───────────────────
+organization:
+  default_repository_permission: read
+  members_can_create_public_repositories: false
+  web_commit_signoff_required: true
+  default_workflow_permissions: read # Actions GITHUB_TOKEN default scope
+  can_approve_pull_request_reviews: false
+
+# orgRulesets:
+#   - name: org-default-branch-protection
+#     target: branch
+#     enforcement: active
+#     conditions:
+#       ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] }
+#       repository_name: { include: ['~ALL'], exclude: [], protected: true }
+#     rules:
+#       - type: deletion
+#       - type: non_fast_forward
+
+# ── Autolinks ────────────────────────────────────────────────────────────────
+# autolinks:
+#   - { key_prefix: 'JIRA-', url_template: 'https://YOUR_ORG.atlassian.net/browse/JIRA-<num>', is_alphanumeric: false }
+
+# ── Webhooks (idempotent by url; secret read from the named env var) ──────────
+# webhooks:
+#   - { url: 'https://ci.example.com/github', events: [push, pull_request], secretFrom: WEBHOOK_SECRET }
+# orgWebhooks:
+#   - { url: 'https://audit.example.com/github', events: ['*'], secretFrom: ORG_WEBHOOK_SECRET }
+
+# ── Secrets/variables (applied with --with-secrets; values from env) ─────────
+# secrets:
+#   actions:
+#     - { name: NPM_TOKEN, from: NPM_TOKEN }            # value = process.env.NPM_TOKEN
+#   dependabot:
+#     - { name: NPM_TOKEN, from: NPM_TOKEN }
+# orgSecrets:
+#   actions:
+#     - { name: SONAR_TOKEN, from: SONAR_TOKEN, visibility: all }
+# variables:
+#   - { name: NODE_ENV, value: production }
+
+# ── Projects v2 (needs a PAT/App token — GITHUB_TOKEN cannot access projects) ─
+# projects:
+#   number: 5

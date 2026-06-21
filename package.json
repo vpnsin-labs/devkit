@@ -37,13 +37,15 @@
     "tsconfig",
     "templates",
     "bin",
+    "lib",
     "README.md"
   ],
   "engines": {
     "node": ">=18.18"
   },
   "scripts": {
-    "test": "node --check bin/cli.js && node -e \"import('./eslint/base.js').then(()=>console.log('eslint/base ok'))\""
+    "test": "node --check bin/cli.js && node -e \"import('./eslint/base.js').then(()=>console.log('eslint/base ok'))\"",
+    "test:govern": "node --check bin/cli.js && node -e \"Promise.all([import('./lib/govern/index.js'),import('./lib/govern/defaults.js')]).then(([i])=>{if(typeof i.runGovern!=='function')throw new Error('runGovern export missing');console.log('govern modules ok')})\""
   },
   "keywords": [
     "eslint-config",

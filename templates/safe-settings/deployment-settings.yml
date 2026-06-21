@@ -1,0 +1,34 @@
+# Runtime restriction file for the safe-settings GitHub App.
+#
+# IMPORTANT: this file lives where the APP RUNS (its deployment), NOT inside the
+# admin repo's .github directory. It controls which repos safe-settings is
+# allowed to manage, and defines optional custom validators.
+#
+# If absent, safe-settings excludes only: admin, .github, safe-settings.
+
+restrictedRepos:
+  # Only manage repos matching these globs…
+  include:
+    - '.*'
+  # …never touch these (the admin/config repos themselves):
+  exclude:
+    - admin
+    - .github
+    - safe-settings
+
+# Optional: reject configs that violate org policy (runs in dry-run on PRs).
+# configvalidators:
+#   - plugin: collaborators
+#     error: 'Collaborators may not be granted admin — use a team instead'
+#     script: |
+#       return baseconfig.permission != 'admin'
+
+# Optional: prevent suborg/repo overrides from WEAKENING an org baseline.
+# overridevalidators:
+#   - plugin: branches
+#     error: 'required_approving_review_count cannot be lowered below the org baseline'
+#     script: |
+#       const b = baseconfig?.protection?.required_pull_request_reviews?.required_approving_review_count
+#       const o = overrideconfig?.protection?.required_pull_request_reviews?.required_approving_review_count
+#       if (b && o) return o >= b
+#       return true

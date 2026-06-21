@@ -1,0 +1,51 @@
+name: Auto-triage issues
+
+# On every newly opened issue:
+#   1. apply a "status: triage" label (and keyword-based type labels)
+#   2. add it to the triage project board (optional — needs a PAT/App token)
+#
+# Step 1 works with the default GITHUB_TOKEN (issues: write). Step 2 needs a
+# PROJECT_PAT secret because GITHUB_TOKEN cannot access org Projects v2.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write # for labelling with GITHUB_TOKEN
+  contents: read
+
+concurrency:
+  group: auto-triage-${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Label new issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = ['status: triage'];
+            const text = `${context.payload.issue.title}\n${context.payload.issue.body || ''}`.toLowerCase();
+            // Lightweight keyword routing — adjust to your taxonomy.
+            if (/\b(bug|error|crash|broken|fails?)\b/.test(text)) labels.push('type: bug');
+            if (/\b(docs?|documentation|readme)\b/.test(text)) labels.push('type: docs');
+            if (/\b(feature|request|proposal|enhancement)\b/.test(text)) labels.push('type: feature');
+            if (/\b(security|vulnerab|cve)\b/.test(text)) labels.push('security');
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels,
+            });
+
+      # Optional: drop the issue on the triage board. Remove if you don't use one.
+      - name: Add to triage board
+        if: vars.TRIAGE_PROJECT_URL != ''
+        uses: actions/add-to-project@v1 # pin to the latest major tag
+        with:
+          project-url: ${{ vars.TRIAGE_PROJECT_URL }}
+          github-token: ${{ secrets.PROJECT_PAT }} # PAT/App token, NOT GITHUB_TOKEN
