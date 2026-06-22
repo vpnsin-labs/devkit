@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/vpnsin-labs/devkit/compare/v0.2.1...v0.2.2) (2026-06-22)
+
+
+### Features
+
+* **govern:** repo & org governance utility (safe-settings + Octokit) ([#30](https://github.com/vpnsin-labs/devkit/issues/30)) ([1b335db](https://github.com/vpnsin-labs/devkit/commit/1b335db4ba38fd1dc96e886a539b5dde2bfd369c))
+
 ## [0.2.1](https://github.com/vpnsin-labs/devkit/compare/v0.2.0...v0.2.1) (2026-06-16)
 
 
