@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/vpnsin-labs/devkit/compare/v0.2.2...v0.2.3) (2026-06-22)
+
+
+### Features
+
+* add --fullstack MERN monorepo scaffold ([#32](https://github.com/vpnsin-labs/devkit/issues/32)) ([7f964ea](https://github.com/vpnsin-labs/devkit/commit/7f964eaf139b56b53f2ea0d68f6d3f7715fba8cd))
+
 ## [0.2.2](https://github.com/vpnsin-labs/devkit/compare/v0.2.1...v0.2.2) (2026-06-22)
 
 
