@@ -6,6 +6,9 @@ import base from '@vpnsin-labs/devkit/jest';
 /** @type {import('jest').Config} */
 export default {
   ...base,
+  // Only run tests from src/ — never the compiled output in dist/ (which would
+  // be picked up as ESM `.js` and fail to parse after a `build` step).
+  roots: ['<rootDir>/src'],
   moduleNameMapper: {
     ...base.moduleNameMapper,
     '^(\\.{1,2}/.*)\\.js$': '$1',
