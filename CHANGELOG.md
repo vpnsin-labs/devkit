@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/vpnsin-labs/devkit/compare/v0.2.3...v0.2.4) (2026-06-22)
+
+
+### Bug Fixes
+
+* keep fullstack jest out of dist and exclude tests from the build ([#34](https://github.com/vpnsin-labs/devkit/issues/34)) ([18a4569](https://github.com/vpnsin-labs/devkit/commit/18a45699fed75c4d67944946f8da381db00ccfcd))
+
 ## [0.2.3](https://github.com/vpnsin-labs/devkit/compare/v0.2.2...v0.2.3) (2026-06-22)
 
 
