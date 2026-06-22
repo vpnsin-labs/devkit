@@ -1,0 +1,7 @@
+# Normalize all text files to LF in the repository (matches .editorconfig and
+# Prettier's endOfLine: 'lf'), regardless of a contributor's core.autocrlf.
+* text=auto eol=lf
+
+# Windows scripts must stay CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
