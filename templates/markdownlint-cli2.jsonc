@@ -10,11 +10,12 @@
   },
   "globs": ["**/*.md"],
   "ignores": [
-    "node_modules",
-    ".next",
-    "dist",
-    "build",
-    "CHANGELOG.md",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/CHANGELOG.md",
     ".github/**/*.md"
   ]
 }

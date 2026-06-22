@@ -1,0 +1,14 @@
+# Local development services. Start MongoDB with:
+#   docker compose up -d mongo
+# then copy backend/.env.example -> backend/.env and run `npm run dev`.
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

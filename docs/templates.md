@@ -700,6 +700,74 @@ next.config.mjs
 **Scripts added:** `dev` (`next dev`), `build` (`next build`), `start` (`next start`)
 **Runtime deps installed:** `next`, `react`, `react-dom`
 
+### Fullstack monorepo — Next.js + Express + MongoDB (`--fullstack`, alias `--mern`)
+
+A single repository containing **two npm workspaces** — a Next.js frontend and an
+Express + MongoDB backend — both versioned independently by release-please. Use this
+instead of `--backend`/`--frontend` (which scaffold a single flat app each);
+`--fullstack` cannot be combined with them.
+
+**Files created:**
+
+```
+backend/                       — workspace: Express + Mongoose API
+  package.json                   (name "backend", type module, dev/build/start/test scripts)
+  tsconfig.json                  (extends devkit/tsconfig/node)
+  jest.config.mjs                (devkit jest preset + ESM `.js`-specifier mapping)
+  Dockerfile, .dockerignore
+  .env.example                   (NODE_ENV, PORT=4000, MONGO_URI)
+  src/
+    server.ts                    — connects Mongo, then listens; graceful shutdown
+    app.ts                       — Express factory (helmet, cors, json, 404)
+    env.ts                       — typed env; required vars abort early
+    db.ts                        — Mongoose connect/disconnect helpers
+    routes/health.ts             — GET /health → { status, db, uptime }
+    app.test.ts                  — supertest coverage of /health and 404
+frontend/                      — workspace: Next.js App Router
+  package.json                   (name "frontend", dev/build/start scripts)
+  tsconfig.json                  (extends devkit/tsconfig/next)
+  next.config.mjs
+  .env.example                   (NEXT_PUBLIC_API_BASE_URL → http://localhost:4000)
+  app/                           layout.tsx, page.tsx, globals.css
+docker-compose.yml             — local MongoDB 7 service
+.gitignore                     — node_modules, dist, .next, coverage, .env (keeps *.example)
+.prettierignore                — build output + CHANGELOGs
+release-please-config.json     — two packages (backend, frontend), component-tagged
+.release-please-manifest.json  — { "backend": "0.0.0", "frontend": "0.0.0" }
+```
+
+**Root `package.json` changes:** `private: true`, `workspaces: ["backend", "frontend"]`,
+and workspace-aware scripts:
+
+| Script | Runs |
+| --- | --- |
+| `npm run dev` | both apps in parallel via `concurrently` (frontend :3000, API :4000) |
+| `npm run build` | `npm run build --workspaces --if-present` (tsc + `next build`) |
+| `npm run type-check` | `tsc --noEmit` in each workspace |
+| `npm test` | the backend Jest suite (the only workspace with tests) |
+| `npm run lint` | one root ESLint pass over both workspaces (base preset) |
+
+**Deps installed:** the workspaces declare their own runtime/dev deps
+(`express`, `cors`, `helmet`, `dotenv`, `mongoose`; `next`, `react`, `react-dom`;
+plus `tsx` and the relevant `@types`), so a single root install resolves
+everything. The root adds the shared tooling plus `concurrently`, `jest`,
+`ts-jest`, `@types/jest`, `supertest`, `@types/supertest`.
+
+**Versioning:** release-please runs in manifest mode with one entry per workspace
+and `include-component-in-tag: true`, so releases are tagged `backend-vX.Y.Z` /
+`frontend-vX.Y.Z`. Scope your commits (`feat(backend): …`, `fix(frontend): …`) to
+bump the right package; commits touching files under a workspace path are
+attributed to it automatically.
+
+**Running locally:**
+
+```bash
+docker compose up -d mongo          # start MongoDB on localhost:27017
+cp backend/.env.example backend/.env
+npm install
+npm run dev                          # frontend on :3000, API on :4000
+```
+
 ---
 
 ## Scratch workspace
