@@ -56,19 +56,6 @@ jobs:
         if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}
         run: npm ci
 
-      - name: Debug npm auth (temporary)
-        if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}
-        run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "::error::NODE_AUTH_TOKEN is EMPTY — the NPM_TOKEN secret is not reaching this job"
-            exit 1
-          fi
-          echo "token length: ${#NODE_AUTH_TOKEN}"
-          echo "registry user (npm whoami):"
-          npm whoami --registry https://registry.npmjs.org || echo "::warning::npm whoami FAILED — token invalid or expired"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to npm
         if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}
         run: npm publish --provenance --access public
