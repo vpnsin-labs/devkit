@@ -28,6 +28,24 @@ const argv = process.argv.slice(2);
 const cmd = argv[0] && !argv[0].startsWith('-') ? argv[0] : 'init';
 const has = (flag) => argv.includes(flag);
 
+// `devkit govern ...` — create & configure GitHub repos/orgs to industry
+// standards (branch protection, rulesets, teams, labels, security rollout,
+// Projects v2, safe-settings config). Lives in its own module tree; deps are
+// lazy-loaded so the base install stays lean.
+if (cmd === 'govern') {
+  const { runGovern } = await import('../lib/govern/index.js');
+  try {
+    await runGovern(argv.slice(1));
+    process.exit(0);
+  } catch (err) {
+    if (err && err.userFacing) {
+      console.error(`\n\x1b[31m✗\x1b[0m ${err.message}\n`);
+      process.exit(1);
+    }
+    throw err;
+  }
+}
+
 const c = {
   green: (s) => `\x1b[32m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
@@ -66,6 +84,10 @@ ${c.bold('Options:')}
   --force        overwrite existing config/template files
   --no-install   skip installing dev dependencies
   -h, --help     show this help
+
+${c.bold('Other commands:')}
+  govern         create & configure GitHub repos/orgs to industry standards
+                 ${c.dim('(branch protection, rulesets, teams, labels, security, projects) — see')} devkit govern --help
 `);
   process.exit(0);
 }

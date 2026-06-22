@@ -1,0 +1,38 @@
+name: Add to project
+
+# Auto-adds new issues and PRs to a GitHub Projects v2 board.
+#
+# AUTH: the default GITHUB_TOKEN CANNOT access org/user Projects v2. Provide a
+# PAT (classic: project+repo; or fine-grained: org Projects read/write) as the
+# ADD_TO_PROJECT_PAT secret, or swap in a GitHub App token (see project-status.yml).
+#
+# Configure:
+#   - repo/org variable PROJECT_URL = https://github.com/orgs/<ORG>/projects/<N>
+#   - repo/org secret   ADD_TO_PROJECT_PAT
+
+on:
+  issues:
+    types: [opened, reopened, transferred, labeled]
+  pull_request:
+    types: [opened, reopened, labeled]
+
+permissions:
+  contents: read # governs GITHUB_TOKEN only; the action uses the PAT below
+
+concurrency:
+  group: add-to-project-${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Add issue/PR to project
+        uses: actions/add-to-project@v1 # pin to the latest major tag
+        with:
+          project-url: ${{ vars.PROJECT_URL }}
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          # Optional: only add items carrying these labels.
+          # labeled: bug, status: triage
+          # label-operator: OR

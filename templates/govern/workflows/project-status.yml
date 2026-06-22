@@ -1,0 +1,78 @@
+name: Project status automation
+
+# Moves a PR's project card to "Done" when it is merged. Demonstrates the
+# GitHub App token pattern (preferred over a long-lived PAT for org projects).
+#
+# Configure:
+#   - repo/org variable APP_ID, PROJECT_NUMBER, PROJECT_STATUS_DONE (e.g. "Done")
+#   - repo/org secret   APP_PRIVATE_KEY
+# The App must have Organization > Projects: read & write.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-status-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  set-done:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mint a GitHub App token (org Projects scope)
+        id: app-token
+        uses: actions/create-github-app-token@v1 # pin to the latest major tag
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Add PR to project and set Status = Done
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
+          DONE_NAME: ${{ vars.PROJECT_STATUS_DONE }}
+          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+        run: |
+          set -euo pipefail
+          # Resolve project id + Status field id + the "Done" option id.
+          gh api graphql -f query='
+            query($org:String!, $number:Int!) {
+              organization(login:$org){
+                projectV2(number:$number){
+                  id
+                  field(name:"Status"){
+                    ... on ProjectV2SingleSelectField { id options { id name } }
+                  }
+                }
+              }
+            }' -f org="$ORG" -F number="$PROJECT_NUMBER" > project.json
+
+          PROJECT_ID=$(jq -r '.data.organization.projectV2.id' project.json)
+          STATUS_FIELD_ID=$(jq -r '.data.organization.projectV2.field.id' project.json)
+          DONE_OPTION_ID=$(jq -r --arg n "$DONE_NAME" \
+            '.data.organization.projectV2.field.options[] | select(.name==$n) | .id' project.json)
+
+          # Add the PR (idempotent — returns existing item id if already present).
+          ITEM_ID=$(gh api graphql -f query='
+            mutation($project:ID!, $content:ID!){
+              addProjectV2ItemById(input:{projectId:$project, contentId:$content}){ item { id } }
+            }' -f project="$PROJECT_ID" -f content="$PR_NODE_ID" \
+            --jq '.data.addProjectV2ItemById.item.id')
+
+          # Set Status = Done.
+          gh api graphql -f query='
+            mutation($project:ID!, $item:ID!, $field:ID!, $opt:String!){
+              updateProjectV2ItemFieldValue(input:{
+                projectId:$project, itemId:$item, fieldId:$field,
+                value:{ singleSelectOptionId:$opt }
+              }){ projectV2Item { id } }
+            }' -f project="$PROJECT_ID" -f item="$ITEM_ID" \
+               -f field="$STATUS_FIELD_ID" -f opt="$DONE_OPTION_ID"

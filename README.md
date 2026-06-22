@@ -17,11 +17,13 @@ Adopt it in any repo with a single command instead of copy-pasting config.
 
 - [Workflows guide](docs/workflows.md) — CI, release, security scanning, Lighthouse, SonarCloud, Dependabot
 - [Templates guide](docs/templates.md) — every scaffolded file explained with customisation examples
+- [Governance guide](docs/governance.md) — `devkit govern`: create & configure repos/orgs to industry standards (branch protection, rulesets, teams, labels, secrets, security rollout, Projects v2) + safe-settings config
 
 ## Contents
 
 - [Quick start](#quick-start)
 - [Spin up a new app](#spin-up-a-new-app)
+- [Govern repos & orgs](#govern-repos--orgs)
 - [CLI options](#cli-options)
 - [Public vs private repos](#public-vs-private-repos)
 - [Manual usage (without the CLI)](#manual-usage-without-the-cli)
@@ -101,6 +103,36 @@ preset:
 
 The app starters are flat (single-app) layouts; run them in separate
 directories for a backend **and** a frontend, or wire up a monorepo yourself.
+
+## Govern repos & orgs
+
+`devkit govern` creates and configures GitHub repos/orgs to industry standards —
+the governance layer on top of the per-repo scaffolding above. It pairs a
+**declarative** half ([github/safe-settings](https://github.com/github/safe-settings)
+YAML for repo settings, branch protection, rulesets, teams, collaborators, labels)
+with an **imperative** Node + Octokit half for everything safe-settings can't do:
+repo creation, Actions/Dependabot secrets, webhooks, security rollout
+(CodeQL, secret scanning, Dependabot, dependency review, org code-security
+configurations), org settings, and Projects v2 automation (auto-triage,
+auto-add, status automation).
+
+```bash
+# one-time: install the extra deps (kept out of the lean base install)
+npm i -D @octokit/rest @octokit/plugin-throttling @octokit/plugin-retry libsodium-wrappers yaml
+
+export GITHUB_TOKEN=ghp_...            # repo admin (+ admin:org for org ops)
+npx devkit govern doctor               # verify token + scopes
+
+npx devkit govern apply --all --dry-run                  # preview org-wide
+npx devkit govern create my-service --template org/tmpl  # create + configure
+npx devkit govern org                                     # org settings + security rollout
+npx devkit govern scaffold-safe-settings ./admin --org vpnsin-labs  # declarative config
+```
+
+Defaults follow OpenSSF Scorecard / GitHub hardening guidance (squash-only merges,
+ruleset-based branch protection, an 18-label taxonomy, security-on-by-default with
+private-repo licence gating). Every mutating command supports `--dry-run`. Full
+reference: **[Governance guide](docs/governance.md)**.
 
 ## CLI options
 

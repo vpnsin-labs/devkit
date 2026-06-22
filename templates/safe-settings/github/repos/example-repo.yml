@@ -1,0 +1,50 @@
+# Per-repo config — overrides org + suborg defaults for ONE repo.
+# File location: .github/repos/<repo-name>.yml (the `repos` dir name is fixed;
+# the filename must match the repo name). Renaming this file renames the repo.
+#
+# Rename this file to <your-repo>.yml. Delete the blocks you don't need —
+# anything omitted inherits from the suborg/org config.
+
+repository:
+  # Create the repo if it doesn't exist yet (optionally from a template):
+  # force_create: true
+  # template: node-template
+  has_wiki: true # override the org default for this repo
+  topics:
+    - service
+    - typescript
+
+# Repo-specific labels are MERGED with the inherited set.
+labels:
+  include:
+    - name: 'area: api'
+      color: '5319e7'
+      description: 'Affects the public API surface'
+
+collaborators:
+  - username: octocat
+    permission: push
+
+branches:
+  - name: default
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 2
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+      required_status_checks:
+        strict: true
+        checks:
+          - context: '{{EXTERNALLY_DEFINED}}'
+      enforce_admins: false
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+      required_conversation_resolution: true
+      restrictions: null
+
+# Per-repo autolinks (e.g. link JIRA-123 in commits/PRs to your tracker):
+autolinks:
+  - key_prefix: 'JIRA-'
+    url_template: 'https://YOUR_ORG.atlassian.net/browse/JIRA-<num>'
+    is_alphanumeric: false

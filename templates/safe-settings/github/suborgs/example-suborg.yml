@@ -1,0 +1,44 @@
+# Sub-org config — applies to a SUBSET of repos, overriding org defaults.
+# File location: .github/suborgs/<anything>.yml (the `suborgs` dir name is fixed).
+#
+# Select which repos this file applies to with ONE OR MORE of:
+#   suborgrepos      — repo-name glob patterns
+#   suborgteams      — team slugs (repos those teams collaborate on)
+#   suborgproperties — custom-property filters, as single-key maps (`- EDP: true`)
+#
+# Everything else (repository, labels, teams, branches, …) overrides the org
+# defaults for the selected repos. `rulesets` are org-only and cannot go here.
+
+suborgrepos:
+  - 'backend-*'
+  - 'svc-*'
+
+# suborgteams:
+#   - backend
+
+# suborgproperties:
+#   - tier: critical        # single-key map → props.tier:critical (NOT property_name/values)
+
+# Stricter review policy for backend services:
+teams:
+  - name: backend
+    permission: admin
+
+branches:
+  - name: default
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 2
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: true
+      required_status_checks:
+        strict: true
+        checks:
+          - context: '{{EXTERNALLY_DEFINED}}'
+      enforce_admins: true
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+      required_conversation_resolution: true
+      restrictions: null
