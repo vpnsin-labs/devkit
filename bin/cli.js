@@ -308,6 +308,7 @@ if (wantsFullstack) {
   // Backend workspace — Express + Mongoose + Jest.
   copyTemplate('app/fullstack/backend/package.json', 'backend/package.json');
   copyTemplate('app/fullstack/backend/tsconfig.json', 'backend/tsconfig.json');
+  copyTemplate('app/fullstack/backend/tsconfig.build.json', 'backend/tsconfig.build.json');
   copyTemplate('app/fullstack/backend/jest.config.mjs', 'backend/jest.config.mjs');
   copyTemplate('app/fullstack/backend/Dockerfile', 'backend/Dockerfile');
   copyTemplate('app/fullstack/backend/dockerignore', 'backend/.dockerignore');
