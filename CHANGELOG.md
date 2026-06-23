@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/vpnsin-labs/devkit/compare/v0.2.4...v0.2.5) (2026-06-23)
+
+
+### Features
+
+* add Render Blueprint (render.yaml) to the backend scaffold ([#37](https://github.com/vpnsin-labs/devkit/issues/37)) ([7f22bd7](https://github.com/vpnsin-labs/devkit/commit/7f22bd757305fd2db0365d72f378316137212bf5))
+
 ## [0.2.4](https://github.com/vpnsin-labs/devkit/compare/v0.2.3...v0.2.4) (2026-06-22)
 
 
