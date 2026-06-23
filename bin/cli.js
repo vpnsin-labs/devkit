@@ -294,6 +294,7 @@ if (wantsBackend) {
   copyTemplate('app/backend/env.example', '.env.example');
   copyTemplate('app/backend/Dockerfile', 'Dockerfile');
   copyTemplate('app/backend/dockerignore', '.dockerignore');
+  copyTemplate('app/backend/render.yaml', 'render.yaml');
 }
 if (wantsFrontend) {
   console.log(c.bold('\nFrontend app (Next.js App Router + TypeScript)'));

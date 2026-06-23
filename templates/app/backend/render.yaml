@@ -1,0 +1,33 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy config for the devkit backend scaffold (Express + TypeScript, compiled to dist/). Mirrors
+# the Dockerfile in this folder: build with `npm run build`, run `node dist/server.js`, probe /health.
+#
+# How to use
+#   1. Set `name` and `branch`.
+#   2. Keep buildCommand / startCommand / healthCheckPath in step with package.json + the health route.
+#   3. Declare every runtime env var under `envVars`:
+#        - secrets / per-environment values -> `sync: false`  (set the VALUE in the Render dashboard
+#          or a shared env group; NEVER commit secret values to git)
+#        - non-secret constants             -> `value: <literal>`  (quote numbers, e.g. value: "22")
+#   4. Do NOT set PORT — Render injects it and the app listens on process.env.PORT.
+services:
+  - type: web
+    name: REPLACE-ME # dashboard service name, lowercase
+    runtime: node
+    plan: starter # free | starter | standard | pro
+    region: singapore # co-locate with your datastore region to cut latency
+    branch: main # branch Render auto-deploys from
+    autoDeploy: true
+    buildCommand: npm ci && npm run build # -> dist/
+    startCommand: npm start # node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22" # match package.json engines / the Dockerfile base image
+      - key: NODE_ENV
+        value: production
+      # --- Add this service's env vars below ---
+      # Secrets use `sync: false`; non-secret defaults use `value:`. For example, a MongoDB URI:
+      # - key: DATABASE_URI
+      #   sync: false
