@@ -42,7 +42,7 @@ jobs:
       # (use workflow_dispatch to recover from a failed publish after rotating NPM_TOKEN).
       - name: Checkout
         if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node
         if: ${{ steps.release.outputs.release_created || github.event_name == 'workflow_dispatch' }}
