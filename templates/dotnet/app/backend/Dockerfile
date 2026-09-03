@@ -19,6 +19,10 @@ EXPOSE 8080
 # Non-root: the official images define APP_UID (1654).
 USER $APP_UID
 
-# No HEALTHCHECK here — the aspnet image ships neither curl nor wget. Point the
-# orchestrator's liveness/readiness probe at GET /health instead.
+# The aspnet image ships neither curl nor wget, so the app probes itself:
+# `dotnet Api.dll --healthcheck` GETs /health on ASPNETCORE_HTTP_PORTS and exits 0/1
+# (see Program.cs). Orchestrator liveness/readiness probes can target GET /health directly.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["dotnet", "Api.dll", "--healthcheck"]
+
 ENTRYPOINT ["dotnet", "Api.dll"]

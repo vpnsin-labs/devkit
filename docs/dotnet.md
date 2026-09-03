@@ -122,8 +122,9 @@ docker build -t payments-api . && docker run -p 8080:8080 payments-api
 
 The `version` reported by `/health` is the assembly's informational version, i.e.
 `<Version>` from `Directory.Build.props` (CI builds append `+<sha>`, which is
-stripped). The aspnet image has no `curl`/`wget`, so the Dockerfile has no
-`HEALTHCHECK` — point the orchestrator's probe at `/health`.
+stripped). The aspnet image has no `curl`/`wget`, so the Dockerfile's `HEALTHCHECK` runs
+`dotnet Api.dll --healthcheck`: a switch in `Program.cs` that GETs `/health` on
+`ASPNETCORE_HTTP_PORTS` and exits 0 or 1. Orchestrator probes can target `/health` directly.
 
 ## CI
 
