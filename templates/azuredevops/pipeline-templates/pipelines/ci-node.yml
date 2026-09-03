@@ -1,0 +1,85 @@
+# devkit shared CI template — Node.js (extends template).
+# Consumers: resources.repositories → this repo @ refs/tags/v1, then
+#   extends: { template: pipelines/ci-node.yml@templates, parameters: { … } }
+parameters:
+  - name: vmImage
+    type: string
+    default: ubuntu-latest
+  - name: timeoutInMinutes
+    type: number
+    default: 15
+  - name: audit
+    displayName: Run npm audit (non-blocking)
+    type: boolean
+    default: true
+  - name: preInstallSteps
+    displayName: Steps before `npm ci` (e.g. npmAuthenticate@0 for an Azure Artifacts feed)
+    type: stepList
+    default: []
+  - name: postSteps
+    displayName: Steps after the quality gates (e.g. publish artifacts)
+    type: stepList
+    default: []
+
+jobs:
+  - job: quality
+    displayName: Lint, type-check & build
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+    cancelTimeoutInMinutes: 2
+    variables:
+      npm_config_cache: $(Pipeline.Workspace)/.npm
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - bash: |
+          v=$(tr -d 'v \n' < .nvmrc); case "$v" in *.*) ;; *) v="$v.x";; esac
+          echo "##vso[task.setvariable variable=NODE_VERSION]$v"
+        displayName: Read .nvmrc
+
+      - task: UseNode@1
+        displayName: Setup Node $(NODE_VERSION)
+        inputs:
+          version: $(NODE_VERSION)
+
+      - task: Cache@2
+        displayName: Cache npm
+        inputs:
+          key: 'npm | "$(Agent.OS)" | package-lock.json'
+          restoreKeys: |
+            npm | "$(Agent.OS)"
+          path: $(npm_config_cache)
+
+      - ${{ each step in parameters.preInstallSteps }}:
+          - ${{ step }}
+
+      - script: npm ci
+        displayName: Install dependencies
+
+      - ${{ if eq(parameters.audit, true) }}:
+          - script: npm audit --audit-level=high
+            displayName: Audit dependencies
+            continueOnError: true
+
+      - script: npm run type-check --if-present
+        displayName: Type-check
+
+      - script: npm run lint --if-present
+        displayName: Lint (ESLint)
+
+      - script: npm run lint:md --if-present
+        displayName: Lint (Markdown)
+
+      - script: npm run format:check --if-present
+        displayName: Prettier check
+
+      - script: npm run build --if-present
+        displayName: Build
+
+      - script: npm test --if-present
+        displayName: Test
+
+      - ${{ each step in parameters.postSteps }}:
+          - ${{ step }}

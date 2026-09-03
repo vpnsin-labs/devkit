@@ -1,0 +1,95 @@
+# CI — build (warnings are errors), dotnet format check, tests with coverage.
+# The quality gate for PRs.
+#
+# Create it once in Azure DevOps: Pipelines → New pipeline → Azure Repos Git →
+# Existing Azure Pipelines YAML file → /azure-pipelines.yml. Then require it as a
+# "Build validation" branch policy on main (`devkit govern azure apply` can do this).
+name: $(Build.DefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true # coalesce pushes while a run is in flight (saves parallel-job minutes)
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+  BuildConfiguration: Release
+
+jobs:
+  - job: quality
+    displayName: Build, format-check & test
+    # Hard cap so a hung job can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 20
+    cancelTimeoutInMinutes: 2
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      # Installs the SDK pinned in global.json (rollForward applies).
+      - task: UseDotNet@2
+        displayName: Setup .NET (global.json)
+        inputs:
+          useGlobalJson: true
+
+      - task: Cache@2
+        displayName: Cache NuGet packages
+        inputs:
+          key: 'nuget | "$(Agent.OS)" | **/*.csproj,!**/bin/**,!**/obj/**'
+          restoreKeys: |
+            nuget | "$(Agent.OS)"
+          path: $(NUGET_PACKAGES)
+
+      # {{ARTIFACTS_AUTH}}
+      - script: dotnet restore
+        displayName: Restore
+
+      # Free dependency vulnerability report (no Advanced Security licence needed).
+      # Non-blocking: `dotnet list` exits 0 even with findings, so grep the output.
+      - bash: |
+          dotnet list package --vulnerable --include-transitive | tee vulnerable.txt
+          ! grep -q "has the following vulnerable packages" vulnerable.txt
+        displayName: Audit dependencies
+        continueOnError: true
+
+      # Warnings are errors and .editorconfig style rules are enforced (Directory.Build.props).
+      - script: dotnet build --no-restore -c $(BuildConfiguration)
+        displayName: Build
+
+      - script: dotnet format --verify-no-changes --no-restore
+        displayName: Format check
+
+      # Node is preinstalled on Microsoft-hosted agents; config in .markdownlint-cli2.jsonc.
+      - script: npx --yes markdownlint-cli2 "**/*.md"
+        displayName: Lint (Markdown)
+
+      - script: >-
+          dotnet test --no-build -c $(BuildConfiguration)
+          --logger trx
+          --collect:"XPlat Code Coverage"
+          --results-directory $(Agent.TempDirectory)/TestResults
+        displayName: Test
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: VSTest
+          testResultsFiles: '**/*.trx'
+          searchFolder: $(Agent.TempDirectory)/TestResults
+          failTaskOnFailedTests: false
+
+      - task: PublishCodeCoverageResults@2
+        displayName: Publish code coverage
+        condition: succeededOrFailed()
+        inputs:
+          summaryFileLocation: $(Agent.TempDirectory)/TestResults/**/coverage.cobertura.xml

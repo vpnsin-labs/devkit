@@ -1,0 +1,38 @@
+{
+  "recommendations": [
+    // ── .NET toolchain (C# Dev Kit: solution explorer, test explorer, IntelliSense) ──
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+
+    // ── Config & docs formats ──
+    "EditorConfig.EditorConfig",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "DavidAnson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker",
+
+    // ── Diagnostics & DX ──
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "wmaurer.change-case",
+
+    // ── Git ──
+    "eamodio.gitlens",
+    "donjayamanne.githistory",
+
+    // ── Code quality (pairs with `devkit init --sonar`) ──
+    "sonarsource.sonarlint-vscode",
+
+    // ── Containers & HTTP (Dockerfile, temp/format.http) ──
+    "ms-azuretools.vscode-docker",
+    "humao.rest-client",
+
+    // ── Markdown & docs ──
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-mermaid",
+
+    // ── Productivity & navigation ──
+    "gruntfuggly.todo-tree"
+  ]
+}

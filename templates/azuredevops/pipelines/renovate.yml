@@ -1,0 +1,55 @@
+# Renovate — dependency update PRs, the Azure Repos counterpart of Dependabot.
+# Self-hosted: runs weekly in this pipeline and reads renovate.json in the repo.
+#
+# One-time setup:
+#   1. Create it: Pipelines → New pipeline → Existing YAML → /.azuredevops/pipelines/renovate.yml
+#   2. Grant the build service identity ("<Project> Build Service (<Org>)") on this repo:
+#      Contribute, Create branch, Contribute to pull requests, Force push (to rebase its
+#      own branches) — Project settings → Repositories → <repo> → Security. For the
+#      Dependency Dashboard work item also grant Work Items: Read & write.
+#   3. Optional: add a secret pipeline variable GITHUB_COM_TOKEN (a github.com PAT with
+#      public read access) and uncomment it below so Renovate can fetch release notes.
+#   4. Work-item linking policy: set `azureWorkItemId` in renovate.json to an open work
+#      item, otherwise Renovate's PRs cannot be completed.
+name: renovate_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+schedules:
+  - cron: '0 3 * * 1' # weekly, Mondays 03:00 UTC
+    displayName: Weekly dependency updates
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: renovate
+    displayName: Renovate
+    # Hard cap so a hung run can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 30
+    steps:
+      - checkout: none # Renovate clones the repo itself via the API
+
+      - task: UseNode@1
+        displayName: Setup Node
+        inputs:
+          version: 22.x
+
+      - bash: |
+          set -euo pipefail
+          git config --global user.name "Renovate Bot"
+          git config --global user.email "renovate@dev.azure.com"
+          npx --yes renovate@44
+        displayName: Run Renovate
+        env:
+          RENOVATE_PLATFORM: azure
+          RENOVATE_ENDPOINT: $(System.CollectionUri)
+          RENOVATE_TOKEN: $(System.AccessToken)
+          RENOVATE_REPOSITORIES: $(System.TeamProject)/$(Build.Repository.Name)
+          LOG_LEVEL: info
+          # {{RENOVATE_HOST_RULES}}
+          # GITHUB_COM_TOKEN: $(GITHUB_COM_TOKEN)

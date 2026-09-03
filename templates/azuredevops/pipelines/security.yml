@@ -1,0 +1,67 @@
+# Security — Trivy filesystem scan: vulnerable dependencies (from lockfiles),
+# committed secrets and IaC/config misconfigurations. Free, no marketplace
+# extension or Advanced Security licence needed. Fails on fixable CRITICAL/HIGH
+# findings; the SARIF report is published as the "CodeAnalysisLogs" artifact
+# (rendered by the free "SARIF SAST Scans Tab" extension if installed).
+#
+# Create it once: Pipelines → New pipeline → Existing YAML → /.azuredevops/pipelines/security.yml
+name: security_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main, dev]
+
+schedules:
+  - cron: '0 7 * * 1' # weekly, Mondays 07:00 UTC
+    displayName: Weekly scan
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  TRIVY_VERSION: v0.74.0
+
+jobs:
+  - job: trivy
+    displayName: Trivy filesystem scan
+    # Hard cap so a hung scan can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 20
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - bash: |
+          set -euo pipefail
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b "$(Agent.ToolsDirectory)/trivy" "$(TRIVY_VERSION)"
+          echo "##vso[task.prependpath]$(Agent.ToolsDirectory)/trivy"
+        displayName: Install Trivy $(TRIVY_VERSION)
+
+      # Scan once to JSON, then render a table for the log and SARIF for the artifact.
+      - bash: |
+          set -euo pipefail
+          trivy fs --scanners vuln,secret,misconfig --severity CRITICAL,HIGH --ignore-unfixed \
+            --format json --output "$(Build.ArtifactStagingDirectory)/trivy.json" .
+          trivy convert --format table "$(Build.ArtifactStagingDirectory)/trivy.json"
+          trivy convert --format sarif --output "$(Build.ArtifactStagingDirectory)/trivy.sarif" \
+            "$(Build.ArtifactStagingDirectory)/trivy.json"
+        displayName: Scan (vuln, secret, misconfig)
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish SARIF
+        condition: succeededOrFailed()
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/trivy.sarif
+          ArtifactName: CodeAnalysisLogs
+
+      # Gate: fail the job when fixable CRITICAL/HIGH findings exist.
+      - bash: trivy convert --format table --exit-code 1 "$(Build.ArtifactStagingDirectory)/trivy.json" > /dev/null
+        displayName: Fail on CRITICAL/HIGH findings

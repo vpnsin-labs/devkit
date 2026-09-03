@@ -1,0 +1,14 @@
+.venv
+.git
+.github
+.azuredevops
+.env
+__pycache__
+*.pyc
+.mypy_cache
+.ruff_cache
+.pytest_cache
+htmlcov
+coverage.xml
+tests
+temp

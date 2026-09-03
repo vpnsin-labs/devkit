@@ -1,0 +1,41 @@
+{
+  "recommendations": [
+    // ── Python toolchain (matches pyproject.toml: Ruff, mypy, pytest) ──
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+
+    // ── Config & docs formats ──
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "DavidAnson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker",
+    "EditorConfig.EditorConfig",
+    "mikestead.dotenv",
+
+    // ── Diagnostics & DX ──
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "wmaurer.change-case",
+
+    // ── Git ──
+    "eamodio.gitlens",
+    "donjayamanne.githistory",
+
+    // ── Code quality (pairs with `devkit init --sonar`) ──
+    "sonarsource.sonarlint-vscode",
+
+    // ── Containers & HTTP (Dockerfile, temp/format.http) ──
+    "ms-azuretools.vscode-docker",
+    "humao.rest-client",
+
+    // ── Markdown & docs ──
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-mermaid",
+
+    // ── Productivity & navigation ──
+    "gruntfuggly.todo-tree"
+  ]
+}

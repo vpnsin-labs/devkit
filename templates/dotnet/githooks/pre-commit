@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# devkit — pre-commit hook for .NET repos (the counterpart of Husky + lint-staged).
+# Formats the staged C# files with `dotnet format` (whitespace, code style and
+# analyzer fixes per .editorconfig) and re-stages them, so commits are always clean.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Skip in an emergency:    git commit --no-verify   (CI still verifies)
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.cs' || true)
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+echo "dotnet format → staged C# files"
+# shellcheck disable=SC2086 # word-splitting the file list is intended
+if ! dotnet format --include $staged; then
+  echo "✗ dotnet format failed (see output above). Fix the errors and commit again." >&2
+  exit 1
+fi
+
+# Re-stage whatever the formatter changed.
+# shellcheck disable=SC2086
+git add $staged

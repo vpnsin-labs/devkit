@@ -1,0 +1,48 @@
+{
+  // ── C# (C# Dev Kit + the C# extension; style rules live in .editorconfig) ─────
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.rulers": [120]
+  },
+  "dotnet.server.useOmnisharp": false,
+  "dotnet.formatting.organizeImportsOnFormat": true,
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+  "dotnet.codeLens.enableReferencesCodeLens": true,
+  "dotnet.unitTests.runSettingsPath": "",
+
+  // ── Editor basics (match .editorconfig; C# files use 4 spaces above) ────────
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+
+  // ── Files ─────────────────────────────────────────────────────────────────────
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true,
+    "**/TestResults": true,
+    "**/artifacts": true
+  },
+
+  // ── Diffs & reviews ───────────────────────────────────────────────────────────
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // ── Per-language formatters ───────────────────────────────────────────────────
+  "[xml]": { "editor.defaultFormatter": "redhat.vscode-xml" },
+  "[yaml]": { "editor.defaultFormatter": "redhat.vscode-yaml" },
+  "[json]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[jsonc]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[markdown]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.markdownlint": "explicit"
+    }
+  }
+}

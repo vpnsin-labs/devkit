@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+# devkit — commit-msg hook: enforce Conventional Commits without Node/commitlint.
+# The release tooling (versionize / release-please) reads these prefixes to
+# compute the version bump and changelog.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+set -eu
+
+msg_file="$1"
+first_line=$(sed -n '1p' "$msg_file")
+
+# Allow git-generated subjects: merges, reverts and autosquash fixups.
+case "$first_line" in
+  "Merge "*|"Revert "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-zA-Z0-9_./-]+\))?!?: .{1,100}$'
+if printf '%s\n' "$first_line" | grep -Eq "$pattern"; then
+  exit 0
+fi
+
+cat >&2 <<MSG
+✗ Commit message is not a Conventional Commit:
+
+    $first_line
+
+  Expected:  <type>[optional scope][!]: <description>
+  Types:     feat fix docs chore refactor perf test build ci style revert
+  Examples:  feat(api): add health endpoint
+             fix: handle null connection string
+             chore!: drop .NET 8 support
+MSG
+exit 1

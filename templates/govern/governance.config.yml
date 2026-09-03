@@ -169,3 +169,32 @@ organization:
 # ── Projects v2 (needs a PAT/App token — GITHUB_TOKEN cannot access projects) ─
 # projects:
 #   number: 5
+
+# ── Azure DevOps (used by `devkit govern azure`; everything else above is GitHub) ──
+# Defaults mirror the GitHub ruleset: 1 approving review, stale votes reset on push,
+# every comment resolved, a linked work item, squash-only merges. Objects merge,
+# arrays replace. Credentials: AZURE_DEVOPS_EXT_PAT (or --token).
+# azure:
+#   organization: https://dev.azure.com/YOUR_ORG
+#   project: YOUR_PROJECT
+#   defaultBranch: main
+#   policies:
+#     minimumReviewers: { minimumApproverCount: 1, resetOnSourcePush: true, blockLastPusherVote: true }
+#     workItemLinking: { enabled: true, blocking: true }
+#     commentResolution: { enabled: true, blocking: true }
+#     mergeStrategy: { allowSquash: true, allowNoFastForward: false, allowRebase: false, allowRebaseMerge: false }
+#     buildValidation:                       # make the CI pipeline a blocking gate
+#       - { pipeline: CI, displayName: CI, queueOnSourceUpdateOnly: true, validDuration: 720 }
+#     requiredReviewers:                     # the CODEOWNERS equivalent (path-scoped)
+#       - reviewers: ['[YOUR_PROJECT]\Platform Team']
+#         paths: ['/.azuredevops/*', '/azure-pipelines.yml']
+#         minimumApproverCount: 1
+#         message: Pipeline changes need a platform review
+#     statusChecks: []                       # e.g. { genre: sonarcloud, name: quality-gate }
+#   repositorySettings:                      # repository-level hygiene policies (all branches)
+#     caseEnforcement: true                  # block case-only path changes
+#     reservedNames: true                    # block names Windows cannot check out
+#     maxPathLength: 248                     # 0 disables
+#     maxFileSizeMB: 100                     # 0 disables
+#     authorEmailPatterns: ['*@contoso.com'] # commits must come from these domains
+#     blockedFilePatterns: ['*.pfx', '*.p12']

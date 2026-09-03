@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, type-check & test
+    runs-on: ubuntu-latest
+    # Hard cap so a hung job can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Installs uv and the Python version pinned in .python-version; caches the uv cache dir.
+      - name: Setup uv + Python
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          python-version-file: .python-version
+
+      # --locked fails if uv.lock is missing or stale: commit the lock (`uv lock`).
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      # Free dependency vulnerability check — works on public and private repos, and
+      # stands in for GHAS Dependency Review on private repos. Non-blocking.
+      - name: Audit dependencies
+        run: uv run --with pip-audit pip-audit
+        continue-on-error: true
+
+      - name: Lint (Ruff)
+        run: uv run ruff check . --output-format=github
+
+      - name: Format check (Ruff)
+        run: uv run ruff format --check .
+
+      - name: Type-check (mypy)
+        run: uv run mypy .
+
+      - name: Lint (Markdown)
+        uses: DavidAnson/markdownlint-cli2-action@v24
+        with:
+          globs: '**/*.md'
+
+      # pytest exits 5 when no tests are collected — accept that so the workflow also
+      # works for repos that have no tests yet.
+      - name: Test (pytest)
+        run: uv run pytest || { rc=$?; [ "$rc" -eq 5 ] && echo "no tests collected" || exit "$rc"; }

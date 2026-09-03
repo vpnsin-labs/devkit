@@ -1,0 +1,73 @@
+# Release — computes the next SemVer from Conventional Commits with versionize,
+# bumps <Version> (Directory.Build.props / *.csproj), writes CHANGELOG.md and pushes
+# the release commit + vX.Y.Z tag back to the branch. The Azure Repos counterpart of
+# release-please. Run it manually from main (Pipelines → Run pipeline); it has no
+# automatic trigger.
+#
+# One-time setup — the build service identity ("<Project> Build Service (<Org>)")
+# needs these permissions on the repo: Contribute, Create tag, Bypass policies when
+# pushing (Project settings → Repositories → <repo> → Security).
+name: release_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+  - name: releaseAs
+    displayName: Release as (empty = compute from commits; or an explicit version like 1.2.0)
+    type: string
+    default: ' '
+  - name: dryRun
+    displayName: Dry run (print the next version + changelog, change nothing)
+    type: boolean
+    default: false
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  - job: release
+    displayName: Bump version, changelog & tag
+    timeoutInMinutes: 10
+    steps:
+      - checkout: self
+        persistCredentials: true # keep the pipeline token so we can push
+        fetchDepth: 0 # full history for the changelog
+
+      - task: UseDotNet@2
+        displayName: Setup .NET (global.json)
+        inputs:
+          useGlobalJson: true
+
+      # versionize is pinned in .config/dotnet-tools.json
+      # {{ARTIFACTS_AUTH}}
+      - script: dotnet tool restore
+        displayName: Restore local tools
+
+      - bash: |
+          set -euo pipefail
+          branch="${BUILD_SOURCEBRANCH#refs/heads/}"
+          git config user.name "Azure Pipelines"
+          git config user.email "pipelines@dev.azure.com"
+          git checkout -B "$branch" "$BUILD_SOURCEVERSION"
+
+          args=""
+          release_as="$(echo "$RELEASE_AS" | xargs)"
+          [ -n "$release_as" ] && args="--release-as $release_as"
+          if [ "${DRY_RUN,,}" = "true" ]; then
+            dotnet versionize --dry-run --changelog-all $args
+            exit 0
+          fi
+
+          # Bumps every <Version> it finds, writes CHANGELOG.md, commits
+          # "chore(release): X.Y.Z" and tags vX.Y.Z.
+          dotnet versionize --changelog-all $args
+          git push --follow-tags origin "HEAD:$branch"
+        displayName: versionize + push
+        env:
+          RELEASE_AS: ${{ parameters.releaseAs }}
+          DRY_RUN: ${{ parameters.dryRun }}

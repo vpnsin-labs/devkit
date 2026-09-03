@@ -1,0 +1,19 @@
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+description = "FastAPI service scaffolded by devkit."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic-settings>=2.4",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# src layout: the importable package is `app` (uv sync installs it editable).
+packages = ["src/app"]

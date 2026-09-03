@@ -1,0 +1,77 @@
+# CI — lint, type-check, format check, build, test. The quality gate for PRs.
+#
+# Create it once in Azure DevOps: Pipelines → New pipeline → Azure Repos Git →
+# Existing Azure Pipelines YAML file → /azure-pipelines.yml. Then require it as a
+# "Build validation" branch policy on main (`devkit govern azure apply` can do this).
+name: $(Build.DefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true # coalesce pushes while a run is in flight (saves parallel-job minutes)
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+
+jobs:
+  - job: quality
+    displayName: Lint, type-check & build
+    # Hard cap so a hung job can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 15
+    cancelTimeoutInMinutes: 2
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      # Node version from .nvmrc — the single source of truth shared with local dev and Docker.
+      - bash: |
+          v=$(tr -d 'v \n' < .nvmrc); case "$v" in *.*) ;; *) v="$v.x";; esac
+          echo "##vso[task.setvariable variable=NODE_VERSION]$v"
+        displayName: Read .nvmrc
+
+      - task: UseNode@1
+        displayName: Setup Node $(NODE_VERSION)
+        inputs:
+          version: $(NODE_VERSION)
+
+      - task: Cache@2
+        displayName: Cache npm
+        inputs:
+          key: 'npm | "$(Agent.OS)" | package-lock.json'
+          restoreKeys: |
+            npm | "$(Agent.OS)"
+          path: $(npm_config_cache)
+
+      # {{ARTIFACTS_AUTH}}
+      - script: npm ci
+        displayName: Install dependencies
+
+      # Free dependency vulnerability check (no Advanced Security licence needed). Non-blocking.
+      - script: npm audit --audit-level=high
+        displayName: Audit dependencies
+        continueOnError: true
+
+      - script: npm run type-check --if-present
+        displayName: Type-check
+
+      - script: npm run lint --if-present
+        displayName: Lint (ESLint)
+
+      - script: npm run lint:md --if-present
+        displayName: Lint (Markdown)
+
+      - script: npm run format:check --if-present
+        displayName: Prettier check
+
+      - script: npm run build --if-present
+        displayName: Build
+
+      - script: npm test --if-present
+        displayName: Test

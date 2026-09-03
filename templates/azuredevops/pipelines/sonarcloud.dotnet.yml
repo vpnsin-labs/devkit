@@ -1,0 +1,70 @@
+# SonarCloud (SonarQube Cloud) analysis for .NET. Opt-in (`devkit init --azure --sonar`).
+# C# is a compiled language, so analysis WRAPS the build (Prepare → build/test → Analyze).
+# Requires:
+#   1. the "SonarQube Cloud" marketplace extension installed in the organization,
+#   2. a service connection named "SonarCloud" (Project settings → Service connections),
+#   3. Automatic Analysis turned OFF in SonarCloud (project → Administration →
+#      Analysis Method) — CI and Automatic Analysis cannot both run.
+# Replace YOUR_SONAR_ORG / YOUR_ORG_YOUR_REPO with the keys from SonarCloud.
+name: sonarcloud_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main, dev]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  - job: sonarcloud
+    displayName: SonarCloud scan (.NET)
+    # Hard cap so a hung job can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 20
+    steps:
+      - checkout: self
+        fetchDepth: 0 # full history improves new-code detection & blame
+
+      - task: UseDotNet@2
+        displayName: Setup .NET (global.json)
+        inputs:
+          useGlobalJson: true
+
+      - task: SonarCloudPrepare@3
+        displayName: Prepare analysis
+        inputs:
+          SonarCloud: SonarCloud
+          organization: YOUR_SONAR_ORG
+          scannerMode: dotnet
+          projectKey: YOUR_ORG_YOUR_REPO
+          projectName: YOUR_PROJECT
+          extraProperties: |
+            sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+            sonar.exclusions=**/bin/**,**/obj/**,**/temp/**
+
+      # {{ARTIFACTS_AUTH}}
+      - script: dotnet build -c Release
+        displayName: Build
+
+      - script: >-
+          dotnet test --no-build -c Release
+          --collect:"XPlat Code Coverage"
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        displayName: Test with coverage
+        continueOnError: true
+
+      - task: SonarCloudAnalyze@3
+        displayName: Run analysis
+
+      - task: SonarCloudPublish@3
+        displayName: Publish quality gate result
+        inputs:
+          pollingTimeoutSec: '300'

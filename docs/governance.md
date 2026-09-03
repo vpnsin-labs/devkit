@@ -8,10 +8,10 @@ Projects v2 automation (auto-triage, auto-add, status automation).
 
 It is built around two complementary halves:
 
-| Half                                    | Tool                            | What it owns                                                                                |
-| --------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Declarative** (policy-as-code, drift-corrected) | [github/safe-settings](https://github.com/github/safe-settings) App + YAML | repo settings, branch protection, **rulesets**, teams, collaborators, labels, milestones, autolinks, environments, custom properties |
-| **Imperative** (one-shot / scripted)    | `devkit govern` (Node + Octokit) | repo **creation**, Actions/Dependabot **secrets**, **webhooks**, **security rollout** (CodeQL / secret scanning / Dependabot / dependency review / org code-security configurations), **org settings**, **Projects v2** automation |
+| Half                                              | Tool                                                                       | What it owns                                                                                                                                                                                                                       |
+| ------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Declarative** (policy-as-code, drift-corrected) | [github/safe-settings](https://github.com/github/safe-settings) App + YAML | repo settings, branch protection, **rulesets**, teams, collaborators, labels, milestones, autolinks, environments, custom properties                                                                                               |
+| **Imperative** (one-shot / scripted)              | `devkit govern` (Node + Octokit)                                           | repo **creation**, Actions/Dependabot **secrets**, **webhooks**, **security rollout** (CodeQL / secret scanning / Dependabot / dependency review / org code-security configurations), **org settings**, **Projects v2** automation |
 
 safe-settings deliberately does **not** manage secrets, webhooks, security
 enablement, or Projects — so the imperative half fills exactly those gaps. You can
@@ -39,6 +39,7 @@ covers, without standing up Terraform state).
 - [safe-settings (declarative half)](#safe-settings-declarative-half)
 - [Industry-standard defaults](#industry-standard-defaults)
 - [Coverage matrix](#coverage-matrix)
+- [Azure Repos (`devkit govern azure`)](#azure-repos-devkit-govern-azure)
 
 ---
 
@@ -65,15 +66,15 @@ If a dependency is missing, the CLI tells you exactly what to install.
 Token resolution order: `--token` → `GITHUB_TOKEN` / `GH_TOKEN` → GitHub App env
 (`APP_ID` + `APP_PRIVATE_KEY` + `APP_INSTALLATION_ID`).
 
-| Operation                       | Classic PAT scope        | Fine-grained / App permission                       |
-| ------------------------------- | ------------------------ | --------------------------------------------------- |
-| Repo create / settings / branch / rulesets / autolinks | `repo`     | Repository **Administration: write**                |
-| Labels                          | `repo`                   | Repository **Issues: write**                        |
-| Actions/Dependabot secrets      | `repo` (+`admin:org` for org) | **Secrets: write** / **Dependabot secrets: write** |
-| Webhooks                        | `admin:repo_hook` / `admin:org_hook` | **Webhooks: write**                     |
-| Security toggles / org config   | `repo` (+`admin:org`)    | Repo/Org **Administration: write**                  |
-| Org settings / rulesets         | `admin:org`              | Organization **Administration: write**              |
-| **Projects v2**                 | `project` (+`repo`)      | Organization **Projects: read & write**             |
+| Operation                                              | Classic PAT scope                    | Fine-grained / App permission                      |
+| ------------------------------------------------------ | ------------------------------------ | -------------------------------------------------- |
+| Repo create / settings / branch / rulesets / autolinks | `repo`                               | Repository **Administration: write**               |
+| Labels                                                 | `repo`                               | Repository **Issues: write**                       |
+| Actions/Dependabot secrets                             | `repo` (+`admin:org` for org)        | **Secrets: write** / **Dependabot secrets: write** |
+| Webhooks                                               | `admin:repo_hook` / `admin:org_hook` | **Webhooks: write**                                |
+| Security toggles / org config                          | `repo` (+`admin:org`)                | Repo/Org **Administration: write**                 |
+| Org settings / rulesets                                | `admin:org`                          | Organization **Administration: write**             |
+| **Projects v2**                                        | `project` (+`repo`)                  | Organization **Projects: read & write**            |
 
 > ⚠️ **The Actions `GITHUB_TOKEN` cannot access org/user Projects v2** — it returns
 > "Resource not accessible by integration". Use a PAT or a GitHub App token
@@ -125,10 +126,10 @@ devkit govern doctor                   verify deps, token, and scopes
 **Repo selectors** (for `apply`, `labels`, `rulesets`, `security`, `webhooks`,
 `secrets`):
 
-| Flag                  | Targets                                        |
-| --------------------- | ---------------------------------------------- |
-| `--repo <name>`       | one repo                                        |
-| `--all`               | every non-archived repo in the org              |
+| Flag                  | Targets                                           |
+| --------------------- | ------------------------------------------------- |
+| `--repo <name>`       | one repo                                          |
+| `--all`               | every non-archived repo in the org                |
 | `--match <glob,glob>` | repos whose name matches any glob (`api-*,svc-*`) |
 
 **Global flags:** `--org`, `--config <path>`, `--dry-run`, `--token`, `--public` /
@@ -160,13 +161,13 @@ Key points:
 
 `devkit govern security` and `bulk-codeql` enable, per repo:
 
-| Feature                              | Public repos | Private / internal repos                         |
-| ------------------------------------ | ------------ | ------------------------------------------------- |
-| Dependency graph + Dependabot alerts | free         | **free**                                          |
-| Dependabot security updates          | free         | **free**                                          |
-| Private vulnerability reporting      | free         | **free**                                          |
-| CodeQL (code scanning)               | free         | needs **GitHub Code Security** licence            |
-| Secret scanning + push protection    | free         | needs **GitHub Secret Protection** licence        |
+| Feature                              | Public repos | Private / internal repos                   |
+| ------------------------------------ | ------------ | ------------------------------------------ |
+| Dependency graph + Dependabot alerts | free         | **free**                                   |
+| Dependabot security updates          | free         | **free**                                   |
+| Private vulnerability reporting      | free         | **free**                                   |
+| CodeQL (code scanning)               | free         | needs **GitHub Code Security** licence     |
+| Secret scanning + push protection    | free         | needs **GitHub Secret Protection** licence |
 
 The CLI **detects visibility** and skips the licence-gated features on private
 repos unless you pass `--allow-paid`. It also never sends `advanced_security` to a
@@ -193,12 +194,12 @@ devkit govern projects status --project 5 --repo my-service --number 42 --status
 For event-driven automation, copy the workflow templates (they handle the
 PAT/App-token requirement):
 
-| Template                                       | Trigger                          | Effect                                    |
-| ---------------------------------------------- | -------------------------------- | ----------------------------------------- |
-| `templates/govern/workflows/add-to-project.yml`| issue/PR opened/labeled          | add to board                              |
-| `templates/govern/workflows/project-status.yml`| PR merged                        | set Status = Done (via GitHub App token)  |
-| `templates/govern/workflows/auto-triage.yml`   | issue opened                     | label + add to triage board               |
-| `templates/govern/labeler.yml`                 | (pair with `actions/labeler@v5`) | path-based PR labels                       |
+| Template                                        | Trigger                          | Effect                                   |
+| ----------------------------------------------- | -------------------------------- | ---------------------------------------- |
+| `templates/govern/workflows/add-to-project.yml` | issue/PR opened/labeled          | add to board                             |
+| `templates/govern/workflows/project-status.yml` | PR merged                        | set Status = Done (via GitHub App token) |
+| `templates/govern/workflows/auto-triage.yml`    | issue opened                     | label + add to triage board              |
+| `templates/govern/labeler.yml`                  | (pair with `actions/labeler@v5`) | path-based PR labels                     |
 
 ## safe-settings (declarative half)
 
@@ -241,21 +242,46 @@ Defaults follow OpenSSF Scorecard + GitHub hardening guidance
 
 ## Coverage matrix
 
-| Capability               | safe-settings | `devkit govern` | Terraform provider           |
-| ------------------------ | :-----------: | :-------------: | ---------------------------- |
-| Repository settings      | ✅            | ✅              | `github_repository`          |
-| Branch protection        | ✅            | ✅              | `github_branch_protection`   |
-| Rulesets (repo + org)    | ✅ (org only) | ✅              | `github_*_ruleset`           |
-| Teams / collaborators    | ✅            | ✅              | `github_team*`               |
-| Labels                   | ✅            | ✅              | `github_issue_label(s)`      |
-| Autolinks / milestones   | ✅            | ✅ (autolinks)  | `github_repository_autolink…`|
-| Actions/Dependabot secrets | ❌          | ✅              | `github_actions_secret`      |
-| Variables                | ✅ (Actions)  | ✅              | `github_actions_variable`    |
-| Webhooks                 | ❌            | ✅              | `github_*_webhook`           |
-| CodeQL / secret scanning | ❌            | ✅              | (security_and_analysis)      |
-| Dependency review        | ❌ (workflow) | ✅ (ruleset/workflow) | n/a                    |
-| Org code-security config  | ❌           | ✅              | n/a                          |
-| Org settings             | ❌            | ✅              | `github_organization_settings` |
-| Projects v2 automation   | ❌            | ✅              | n/a                          |
-| Drift correction         | ✅ (CRON)     | re-run / schedule | `terraform apply`          |
-| State required           | no            | no              | yes                          |
+| Capability                 | safe-settings |    `devkit govern`    | Terraform provider             |
+| -------------------------- | :-----------: | :-------------------: | ------------------------------ |
+| Repository settings        |      ✅       |          ✅           | `github_repository`            |
+| Branch protection          |      ✅       |          ✅           | `github_branch_protection`     |
+| Rulesets (repo + org)      | ✅ (org only) |          ✅           | `github_*_ruleset`             |
+| Teams / collaborators      |      ✅       |          ✅           | `github_team*`                 |
+| Labels                     |      ✅       |          ✅           | `github_issue_label(s)`        |
+| Autolinks / milestones     |      ✅       |    ✅ (autolinks)     | `github_repository_autolink…`  |
+| Actions/Dependabot secrets |      ❌       |          ✅           | `github_actions_secret`        |
+| Variables                  | ✅ (Actions)  |          ✅           | `github_actions_variable`      |
+| Webhooks                   |      ❌       |          ✅           | `github_*_webhook`             |
+| CodeQL / secret scanning   |      ❌       |          ✅           | (security_and_analysis)        |
+| Dependency review          | ❌ (workflow) | ✅ (ruleset/workflow) | n/a                            |
+| Org code-security config   |      ❌       |          ✅           | n/a                            |
+| Org settings               |      ❌       |          ✅           | `github_organization_settings` |
+| Projects v2 automation     |      ❌       |          ✅           | n/a                            |
+| Drift correction           |   ✅ (CRON)   |   re-run / schedule   | `terraform apply`              |
+| State required             |      no       |          no           | yes                            |
+
+## Azure Repos (`devkit govern azure`)
+
+Repos hosted in Azure DevOps are governed with branch **policies** rather than
+rulesets. `devkit govern azure` converges them idempotently on each repo's default
+branch using the built-in `fetch` and a PAT (`AZURE_DEVOPS_EXT_PAT`) — the Octokit
+packages are not needed:
+
+```bash
+npx devkit govern azure doctor --org-url https://dev.azure.com/contoso --project Platform
+npx devkit govern azure repos
+npx devkit govern azure apply --repo payments-api --dry-run
+npx devkit govern azure apply --all --prune
+npx devkit govern azure create payments-api
+```
+
+Defaults (1 approving review with stale-vote reset, comment resolution, linked
+work item, squash-only merges, plus repository hygiene: case enforcement, reserved
+names, path length, file size) mirror the GitHub ruleset above; build validation,
+path-scoped required reviewers (the CODEOWNERS equivalent, or `apply --codeowners`
+to translate a file), status checks and author-email / blocked-file rules are
+configured under `azure:` in `governance.config.yml`. `wiki publish` publishes
+`docs/wiki` as a code wiki and `scaffold-pipeline-templates` writes a shared
+`extends` templates repo. Full reference:
+[Azure DevOps guide](azure-devops.md#governance--devkit-govern-azure).

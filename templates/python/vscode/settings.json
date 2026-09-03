@@ -1,0 +1,58 @@
+{
+  // ── Python (Ruff owns lint + format; Pylance for IntelliSense; mypy for types) ──
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    },
+    "editor.tabSize": 4,
+    "editor.rulers": [100]
+  },
+  // Use the tools installed in the project venv (uv sync), not global copies.
+  "ruff.importStrategy": "fromEnvironment",
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "python.analysis.typeCheckingMode": "standard",
+  "python.terminal.activateEnvironment": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
+
+  // ── Editor basics (match .editorconfig; Python files use 4 spaces above) ──
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+
+  // ── Files ──
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/.pytest_cache": true,
+    "**/htmlcov": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  // ── Diffs & reviews ──
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // ── Per-language formatters ──
+  "[toml]": { "editor.defaultFormatter": "tamasfe.even-better-toml" },
+  "[yaml]": { "editor.defaultFormatter": "redhat.vscode-yaml" },
+  "[json]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[jsonc]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[markdown]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.markdownlint": "explicit"
+    }
+  }
+}

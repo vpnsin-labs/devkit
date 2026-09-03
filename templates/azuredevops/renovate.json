@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "devkit: set azureWorkItemId to an open Azure Boards work item id so Renovate PRs satisfy the work-item-linking branch policy (0 = no link).",
+    "Private Azure Artifacts feeds: the renovate pipeline passes RENOVATE_HOST_RULES when scaffolded with --artifacts."
+  ],
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Etc/UTC",
+  "prConcurrentLimit": 5,
+  "rebaseWhen": "behind-base-branch",
+  "azureWorkItemId": 0,
+  "packageRules": [
+    {
+      "description": "Batch low-risk updates into a single weekly PR to cut noise (majors stay separate).",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "minor-and-patch"
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on monday"]
+  }
+}

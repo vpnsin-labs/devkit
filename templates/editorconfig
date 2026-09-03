@@ -13,3 +13,13 @@ trim_trailing_whitespace = false
 
 [*.{bat,cmd}]
 end_of_line = crlf
+
+# Python and C# conventions use 4 spaces (PEP 8 / .NET defaults).
+[*.py]
+indent_size = 4
+
+[*.{cs,csx,vb}]
+indent_size = 4
+
+[Makefile]
+indent_style = tab

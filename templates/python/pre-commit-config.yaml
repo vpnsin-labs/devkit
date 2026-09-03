@@ -1,0 +1,58 @@
+# Git hooks via the pre-commit framework (https://pre-commit.com) — the Python
+# counterpart of Husky + lint-staged + commitlint in devkit's Node scaffold.
+#   install:  uv run pre-commit install        (installs every hook type listed below)
+#   run all:  uv run pre-commit run --all-files
+#   update:   uv run pre-commit autoupdate
+default_install_hook_types: [{{HOOK_TYPES}}]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  # Ruff — lint (with autofix) then format; reads [tool.ruff] in pyproject.toml.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # mypy runs from the project venv (not an isolated hook env) so it sees every
+  # runtime dependency's type information.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+
+  # Keep uv.lock in step with pyproject.toml.
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.9
+    hooks:
+      - id: uv-lock
+
+  # Markdown lint (uses .markdownlint-cli2.jsonc; pre-commit provisions Node for it).
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
+
+  # commit-msg: enforce Conventional Commits (the same rules the release bump reads).
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.18.0
+    hooks:
+      - id: commitizen
+
+  # {{AB_LINK_HOOK}}

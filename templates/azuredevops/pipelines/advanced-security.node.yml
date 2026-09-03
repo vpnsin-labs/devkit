@@ -1,0 +1,59 @@
+# GitHub Advanced Security for Azure DevOps — CodeQL code scanning + dependency
+# scanning. Opt-in (`devkit init --azure --ghazdo`): it is billed per active
+# committer and must be enabled on the repository first (Project settings →
+# Repositories → <repo> → Settings → Advanced Security). Secret scanning and push
+# protection come with that switch and need no pipeline. Results appear under
+# Repos → Advanced Security.
+name: advanced-security_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main, dev]
+
+schedules:
+  - cron: '0 6 * * 1' # weekly, Mondays 06:00 UTC
+    displayName: Weekly analysis
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: advanced_security
+    displayName: CodeQL + dependency scanning
+    # Hard cap so a hung analysis can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 30
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - task: AdvancedSecurity-Codeql-Init@1
+        displayName: Initialize CodeQL
+        inputs:
+          languages: javascript
+          querysuite: security-extended
+
+      # Dependency scanning reads the lockfile; install so transitive deps resolve.
+      - bash: |
+          v=$(tr -d 'v \n' < .nvmrc); case "$v" in *.*) ;; *) v="$v.x";; esac
+          echo "##vso[task.setvariable variable=NODE_VERSION]$v"
+        displayName: Read .nvmrc
+      - task: UseNode@1
+        inputs:
+          version: $(NODE_VERSION)
+      # {{ARTIFACTS_AUTH}}
+      - script: npm ci
+        displayName: Install dependencies
+
+      - task: AdvancedSecurity-Dependency-Scanning@1
+        displayName: Dependency scanning
+
+      - task: AdvancedSecurity-Codeql-Analyze@1
+        displayName: Perform CodeQL analysis
