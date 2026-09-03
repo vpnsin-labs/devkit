@@ -1,7 +1,7 @@
 {
   "name": "@vpnsin-labs/devkit",
   "version": "0.2.4",
-  "description": "Shared ESLint, Prettier, commitlint, markdownlint, lint-staged, Husky and GitHub CI/release config for Node.js & Next.js repos.",
+  "description": "Shared dev tooling for Node.js/Next.js, Python and .NET repos on GitHub or Azure Repos: lint/format/commit hooks, CI (GitHub Actions or Azure Pipelines), release automation and repo governance.",
   "type": "module",
   "prettier": "./prettier/index.js",
   "repository": {
@@ -44,8 +44,9 @@
     "node": ">=18.18"
   },
   "scripts": {
-    "test": "node --check bin/cli.js && node -e \"import('./eslint/base.js').then(()=>console.log('eslint/base ok'))\"",
-    "test:govern": "node --check bin/cli.js && node -e \"Promise.all([import('./lib/govern/index.js'),import('./lib/govern/defaults.js')]).then(([i])=>{if(typeof i.runGovern!=='function')throw new Error('runGovern export missing');console.log('govern modules ok')})\""
+    "test": "node --test \"test/*.test.js\"",
+    "test:govern": "node --check bin/cli.js && node -e \"Promise.all([import('./lib/govern/index.js'),import('./lib/govern/defaults.js')]).then(([i])=>{if(typeof i.runGovern!=='function')throw new Error('runGovern export missing');console.log('govern modules ok')})\"",
+    "test:smoke": "node --check bin/cli.js && node -e \"import('./eslint/base.js').then(()=>console.log('eslint/base ok'))\""
   },
   "keywords": [
     "eslint-config",
@@ -56,7 +57,18 @@
     "lint-staged",
     "release-please",
     "config",
-    "nextjs"
+    "nextjs",
+    "python",
+    "ruff",
+    "pre-commit",
+    "dotnet",
+    "csharp",
+    "azure-devops",
+    "azure-pipelines",
+    "azure-repos",
+    "renovate",
+    "github-actions",
+    "scaffold"
   ],
   "license": "MIT",
   "dependencies": {
@@ -78,5 +90,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.0"
   }
 }

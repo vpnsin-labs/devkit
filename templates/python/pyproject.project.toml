@@ -1,0 +1,7 @@
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+description = "One-line description of what this project does."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []

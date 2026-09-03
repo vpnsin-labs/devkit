@@ -1,0 +1,25 @@
+# azure-pipelines.yml — consumer of the shared pipeline-templates repo (python).
+# The CI job lives in the template; this file only declares triggers and parameters.
+trigger:
+  batch: true
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: YOUR_PROJECT/pipeline-templates
+      ref: refs/tags/v1
+
+extends:
+  template: pipelines/ci-python.yml@templates
+  parameters:
+    timeoutInMinutes: 15
+    # installEnv:                 # Azure Artifacts feed auth (uv index named "azure")
+    #   UV_INDEX_AZURE_USERNAME: azure
+    #   UV_INDEX_AZURE_PASSWORD: $(System.AccessToken)

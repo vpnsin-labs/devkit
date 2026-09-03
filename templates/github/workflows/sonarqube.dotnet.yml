@@ -1,0 +1,72 @@
+name: SonarCloud
+
+# CI-based SonarCloud (SonarQube Cloud) analysis for .NET. C# is a compiled
+# language, so analysis must WRAP the build with dotnet-sonarscanner (begin/end)
+# — the generic sonarqube-scan-action does not analyse C#. Requires:
+#   1. a SONAR_TOKEN repo secret (SonarCloud → My Account → Security → token), and
+#   2. Automatic Analysis turned OFF in SonarCloud (project → Administration →
+#      Analysis Method) — CI and Automatic Analysis cannot both run.
+# Replace YOUR_SONAR_ORG / YOUR_ORG_YOUR_REPO below with the keys from SonarCloud.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+# Auto-cancel superseded runs on the same ref to save Actions minutes (metered on private repos).
+concurrency:
+  group: sonarcloud-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  sonarcloud:
+    name: SonarCloud scan (.NET)
+    runs-on: ubuntu-latest
+    # Hard cap so a hung job can't drain the Actions minute quota (metered on private repos).
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history improves new-code detection & blame
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Install dotnet-sonarscanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Begin analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >-
+          dotnet sonarscanner begin
+          /k:"YOUR_ORG_YOUR_REPO"
+          /o:"YOUR_SONAR_ORG"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          /d:sonar.exclusions="**/bin/**,**/obj/**,**/temp/**"
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Test with coverage
+        run: >-
+          dotnet test --no-build -c Release
+          --collect:"XPlat Code Coverage"
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+      - name: End analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"

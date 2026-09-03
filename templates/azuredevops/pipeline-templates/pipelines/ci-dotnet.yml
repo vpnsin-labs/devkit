@@ -1,0 +1,101 @@
+# devkit shared CI template — .NET (extends template).
+# Consumers: resources.repositories → this repo @ refs/tags/v1, then
+#   extends: { template: pipelines/ci-dotnet.yml@templates, parameters: { … } }
+parameters:
+  - name: vmImage
+    type: string
+    default: ubuntu-latest
+  - name: timeoutInMinutes
+    type: number
+    default: 20
+  - name: buildConfiguration
+    type: string
+    default: Release
+  - name: audit
+    displayName: Report vulnerable packages (non-blocking)
+    type: boolean
+    default: true
+  - name: preInstallSteps
+    displayName: Steps before `dotnet restore` (e.g. NuGetAuthenticate@1 for an Azure Artifacts feed)
+    type: stepList
+    default: []
+  - name: postSteps
+    displayName: Steps after the quality gates
+    type: stepList
+    default: []
+
+jobs:
+  - job: quality
+    displayName: Build, format-check & test
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+    cancelTimeoutInMinutes: 2
+    variables:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - task: UseDotNet@2
+        displayName: Setup .NET (global.json)
+        inputs:
+          useGlobalJson: true
+
+      - task: Cache@2
+        displayName: Cache NuGet packages
+        inputs:
+          key: 'nuget | "$(Agent.OS)" | **/*.csproj,!**/bin/**,!**/obj/**'
+          restoreKeys: |
+            nuget | "$(Agent.OS)"
+          path: $(NUGET_PACKAGES)
+
+      - ${{ each step in parameters.preInstallSteps }}:
+          - ${{ step }}
+
+      - script: dotnet restore
+        displayName: Restore
+
+      - ${{ if eq(parameters.audit, true) }}:
+          - bash: |
+              dotnet list package --vulnerable --include-transitive | tee vulnerable.txt
+              ! grep -q "has the following vulnerable packages" vulnerable.txt
+            displayName: Audit dependencies
+            continueOnError: true
+
+      - script: dotnet build --no-restore -c ${{ parameters.buildConfiguration }}
+        displayName: Build
+
+      - script: dotnet format --verify-no-changes --no-restore
+        displayName: Format check
+
+      - script: npx --yes markdownlint-cli2 "**/*.md"
+        displayName: Lint (Markdown)
+
+      - script: >-
+          dotnet test --no-build -c ${{ parameters.buildConfiguration }}
+          --logger trx
+          --collect:"XPlat Code Coverage"
+          --results-directory $(Agent.TempDirectory)/TestResults
+        displayName: Test
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: VSTest
+          testResultsFiles: '**/*.trx'
+          searchFolder: $(Agent.TempDirectory)/TestResults
+          failTaskOnFailedTests: false
+
+      - task: PublishCodeCoverageResults@2
+        displayName: Publish code coverage
+        condition: succeededOrFailed()
+        inputs:
+          summaryFileLocation: $(Agent.TempDirectory)/TestResults/**/coverage.cobertura.xml
+
+      - ${{ each step in parameters.postSteps }}:
+          - ${{ step }}

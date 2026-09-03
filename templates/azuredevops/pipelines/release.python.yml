@@ -1,0 +1,77 @@
+# Release — computes the next SemVer from Conventional Commits with commitizen,
+# bumps [project] version in pyproject.toml, refreshes uv.lock, writes CHANGELOG.md
+# and pushes the release commit + vX.Y.Z tag back to the branch. The Azure Repos
+# counterpart of release-please. Run it manually from main (Pipelines → Run
+# pipeline); it has no automatic trigger.
+#
+# One-time setup — the build service identity ("<Project> Build Service (<Org>)")
+# needs these permissions on the repo: Contribute, Create tag, Bypass policies when
+# pushing (Project settings → Repositories → <repo> → Security).
+name: release_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+  - name: increment
+    displayName: Increment (AUTO = compute from commits)
+    type: string
+    default: AUTO
+    values: [AUTO, MAJOR, MINOR, PATCH]
+  - name: dryRun
+    displayName: Dry run (print the next version + changelog, change nothing)
+    type: boolean
+    default: false
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: release
+    displayName: Bump version, changelog & tag
+    timeoutInMinutes: 10
+    steps:
+      - checkout: self
+        persistCredentials: true # keep the pipeline token so we can push
+        fetchDepth: 0 # full history for the changelog
+
+      - bash: |
+          set -euo pipefail
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "##vso[task.prependpath]$HOME/.local/bin"
+        displayName: Install uv
+
+      - script: uv sync --locked --all-groups
+        displayName: Install dependencies
+        # {{ARTIFACTS_ENV}}
+
+      - bash: |
+          set -euo pipefail
+          branch="${BUILD_SOURCEBRANCH#refs/heads/}"
+          git config user.name "Azure Pipelines"
+          git config user.email "pipelines@dev.azure.com"
+          git checkout -B "$branch" "$BUILD_SOURCEVERSION"
+
+          args=""
+          [ "$INCREMENT" != "AUTO" ] && args="--increment $INCREMENT"
+          if [ "${DRY_RUN,,}" = "true" ]; then
+            uv run cz bump --changelog --dry-run $args
+            exit 0
+          fi
+
+          # 1. Bump pyproject.toml + CHANGELOG.md without committing (commitizen), so the
+          #    lockfile can be refreshed with the new version before the release commit.
+          uv run cz bump --changelog --yes --files-only $args
+          uv lock
+          new="$(uv run cz version --project)"
+
+          # 2. Release commit + annotated tag, then push both.
+          git add pyproject.toml CHANGELOG.md uv.lock
+          git commit -m "chore(release): v$new"
+          git tag -a "v$new" -m "v$new"
+          git push --follow-tags origin "HEAD:$branch"
+        displayName: cz bump + push
+        env:
+          INCREMENT: ${{ parameters.increment }}
+          DRY_RUN: ${{ parameters.dryRun }}
+          # {{ARTIFACTS_ENV_ENTRIES}}

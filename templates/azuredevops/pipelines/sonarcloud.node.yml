@@ -1,0 +1,60 @@
+# SonarCloud (SonarQube Cloud) analysis. Opt-in (`devkit init --azure --sonar`).
+# Requires:
+#   1. the "SonarQube Cloud" marketplace extension installed in the organization,
+#   2. a service connection named "SonarCloud" (Project settings → Service connections),
+#   3. Automatic Analysis turned OFF in SonarCloud (project → Administration →
+#      Analysis Method) — CI and Automatic Analysis cannot both run.
+# Project keys live in sonar-project.properties.
+name: sonarcloud_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main, dev]
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: sonarcloud
+    displayName: SonarCloud scan
+    # Hard cap so a hung job can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 15
+    steps:
+      - checkout: self
+        fetchDepth: 0 # full history improves new-code detection & blame
+
+      - task: SonarCloudPrepare@3
+        displayName: Prepare analysis
+        inputs:
+          SonarCloud: SonarCloud
+          organization: YOUR_SONAR_ORG
+          scannerMode: cli
+          configMode: file # reads sonar-project.properties
+
+      # Optional: produce coverage for Sonar (sonar.javascript.lcov.reportPaths).
+      - bash: |
+          v=$(tr -d 'v \n' < .nvmrc); case "$v" in *.*) ;; *) v="$v.x";; esac
+          echo "##vso[task.setvariable variable=NODE_VERSION]$v"
+        displayName: Read .nvmrc
+      - task: UseNode@1
+        inputs:
+          version: $(NODE_VERSION)
+      # {{ARTIFACTS_AUTH}}
+      - script: npm ci
+        displayName: Install dependencies
+      - script: npm run test:coverage --if-present
+        displayName: Test with coverage
+        continueOnError: true
+
+      - task: SonarCloudAnalyze@3
+        displayName: Run analysis
+
+      - task: SonarCloudPublish@3
+        displayName: Publish quality gate result
+        inputs:
+          pollingTimeoutSec: '300'

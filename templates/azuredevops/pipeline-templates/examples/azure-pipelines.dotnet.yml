@@ -1,0 +1,24 @@
+# azure-pipelines.yml — consumer of the shared pipeline-templates repo (dotnet).
+# The CI job lives in the template; this file only declares triggers and parameters.
+trigger:
+  batch: true
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: YOUR_PROJECT/pipeline-templates
+      ref: refs/tags/v1
+
+extends:
+  template: pipelines/ci-dotnet.yml@templates
+  parameters:
+    timeoutInMinutes: 20
+    # preInstallSteps:            # Azure Artifacts feed auth
+    #   - task: NuGetAuthenticate@1

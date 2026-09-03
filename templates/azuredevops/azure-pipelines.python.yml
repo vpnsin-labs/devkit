@@ -1,0 +1,85 @@
+# CI — Ruff lint + format check, mypy, pytest. The quality gate for PRs.
+#
+# Create it once in Azure DevOps: Pipelines → New pipeline → Azure Repos Git →
+# Existing Azure Pipelines YAML file → /azure-pipelines.yml. Then require it as a
+# "Build validation" branch policy on main (`devkit govern azure apply` can do this).
+name: $(Build.DefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true # coalesce pushes while a run is in flight (saves parallel-job minutes)
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  UV_CACHE_DIR: $(Pipeline.Workspace)/.uv
+
+jobs:
+  - job: quality
+    displayName: Lint, type-check & test
+    # Hard cap so a hung job can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 15
+    cancelTimeoutInMinutes: 2
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      # uv installs the Python version pinned in .python-version and manages the venv.
+      - bash: |
+          set -euo pipefail
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "##vso[task.prependpath]$HOME/.local/bin"
+        displayName: Install uv
+
+      - task: Cache@2
+        displayName: Cache uv
+        inputs:
+          key: 'uv | "$(Agent.OS)" | uv.lock'
+          restoreKeys: |
+            uv | "$(Agent.OS)"
+          path: $(UV_CACHE_DIR)
+
+      # --locked fails if uv.lock is missing or stale: commit the lock (`uv lock`).
+      - script: uv sync --locked --all-groups
+        displayName: Install dependencies
+        # {{ARTIFACTS_ENV}}
+
+      # Free dependency vulnerability check (no Advanced Security licence needed). Non-blocking.
+      - script: uv run --with pip-audit pip-audit
+        displayName: Audit dependencies
+        continueOnError: true
+        # {{ARTIFACTS_ENV}}
+
+      - script: uv run ruff check . --output-format=concise
+        displayName: Lint (Ruff)
+
+      - script: uv run ruff format --check .
+        displayName: Format check (Ruff)
+
+      - script: uv run mypy .
+        displayName: Type-check (mypy)
+
+      # Node is preinstalled on Microsoft-hosted agents; config in .markdownlint-cli2.jsonc.
+      - script: npx --yes markdownlint-cli2 "**/*.md"
+        displayName: Lint (Markdown)
+
+      # pytest exits 5 when no tests are collected — accept that so the pipeline also
+      # works for repos that have no tests yet.
+      - bash: |
+          uv run pytest --junitxml="$(Build.ArtifactStagingDirectory)/junit.xml" \
+            || { rc=$?; [ "$rc" -eq 5 ] && echo "no tests collected" || exit "$rc"; }
+        displayName: Test (pytest)
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: $(Build.ArtifactStagingDirectory)/junit.xml
+          failTaskOnFailedTests: false

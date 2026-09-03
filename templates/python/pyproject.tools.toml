@@ -1,0 +1,59 @@
+[dependency-groups]
+# Dev-only tooling (PEP 735) — install with `uv sync --all-groups`. Managed by devkit:
+# re-sync with `npx devkit init --python --force` (existing tables are left alone).
+dev = [
+  "ruff>=0.12",
+  "mypy>=1.16",
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "commitizen>=4.4",
+  "pre-commit>=4.0",
+  "httpx2>=2.0", # HTTP client behind FastAPI/Starlette TestClient (Starlette ≥ 1.6)
+]
+
+[tool.ruff]
+# Lint + format (replaces flake8, isort, black). Line length matches devkit's Prettier printWidth.
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv", "build", "dist", "temp"]
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "N", "C4", "PT", "RUF"]
+ignore = ["E501"] # line length is the formatter's job
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"] # asserts are fine in tests
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.mypy]
+# Strict by default (mirrors devkit's strict tsconfig). Relax per-module with
+# [[tool.mypy.overrides]] rather than turning strict off globally.
+python_version = "3.12"
+strict = true
+pretty = true
+show_error_codes = true
+warn_unreachable = true
+exclude = ['^\.venv/', '^build/', '^dist/', '^temp/'] # literal strings: no escaping
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --strict-config"
+xfail_strict = true
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", ".venv/*", "temp/*"]
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.commitizen]
+# Conventional Commits: `cz check` guards commit messages (pre-commit hook) and
+# `cz bump --changelog` computes the SemVer bump + CHANGELOG.md for releases.
+name = "cz_conventional_commits"
+version_provider = "pep621"
+version_scheme = "semver"
+tag_format = "v$version"
+major_version_zero = true # feat!: bumps 0.x → 0.(x+1) while < 1.0 (like release-please)
+update_changelog_on_bump = true
+changelog_incremental = true

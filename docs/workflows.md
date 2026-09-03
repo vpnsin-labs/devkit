@@ -2,7 +2,10 @@
 
 `devkit init` scaffolds a set of GitHub Actions workflows into `.github/workflows/`.
 Some are installed by default; others are opt-in via CLI flags. This page explains
-every workflow, what it does, when it runs, and how to customise it.
+every workflow, what it does, when it runs, and how to customise it. Python and .NET
+repos receive language variants of CI, CodeQL and SonarCloud (see
+[Language variants](#language-variants-python-net)); Azure Repos get Azure Pipelines
+instead — see [Azure Repos](#azure-repos).
 
 ---
 
@@ -20,6 +23,8 @@ every workflow, what it does, when it runs, and how to customise it.
 - [Lighthouse CI (`lighthouse.yml`)](#lighthouse-ci)
 - [SonarCloud (`sonarqube.yml`)](#sonarcloud)
 - [Dependabot (`dependabot.yml`)](#dependabot)
+- [Language variants (Python, .NET)](#language-variants-python-net)
+- [Azure Repos](#azure-repos)
 
 ---
 
@@ -491,3 +496,30 @@ ignore:
   - dependency-name: "some-legacy-package"
     versions: ["*"]
 ```
+
+---
+
+## Language variants (Python, .NET)
+
+`devkit init --python` / `--dotnet` install the same workflow set with per-language
+files where the toolchain differs. Everything else (release-please, Dependency
+Review, Trivy, Scorecard, Lighthouse) is shared.
+
+| Workflow / file | Node (default) | Python | .NET |
+| --- | --- | --- | --- |
+| `ci.yml` setup | `setup-node` from `.nvmrc`, `npm ci` | `astral-sh/setup-uv` from `.python-version`, `uv sync --locked --all-groups` | `setup-dotnet` from `global.json`, `dotnet restore` |
+| `ci.yml` audit (non-blocking) | `npm audit --audit-level=high` | `uv run --with pip-audit pip-audit` | `dotnet list package --vulnerable --include-transitive` |
+| `ci.yml` gates | type-check, lint, lint:md, format:check, build, test (`--if-present`) | `ruff check`, `ruff format --check`, `mypy .`, markdownlint, `pytest` (exit 5 = no tests accepted) | `dotnet build -c Release` (warnings are errors), `dotnet format --verify-no-changes`, markdownlint, `dotnet test` (TRX + coverage) |
+| `codeql.yml` | `javascript-typescript` | `python` | `csharp` with `build-mode: none` |
+| `sonarqube.yml` | scan action + `sonar-project.properties` | scan action + `sonar-project.python.properties` | `dotnet-sonarscanner begin` → build/test → `end` (C# needs the build wrapped) |
+| `dependabot.yml` | `npm` + `github-actions` | `uv` + `github-actions` | `nuget` + `github-actions` |
+| `release-please-config.json` | `release-type: node` | `release-type: python` (bumps `pyproject.toml`) | `release-type: simple` + XML `extra-files` updater for `<Version>` in `Directory.Build.props` |
+
+Details and adoption notes: [Python guide](python.md), [.NET guide](dotnet.md).
+
+## Azure Repos
+
+With `--azure` none of the workflows above are installed. Their Azure Pipelines
+counterparts — `azure-pipelines.yml` (CI), `.azuredevops/pipelines/release.yml`,
+`security.yml` (Trivy), `renovate.yml`, and opt-in `advanced-security.yml` /
+`sonarcloud.yml` — are documented in the [Azure DevOps guide](azure-devops.md).

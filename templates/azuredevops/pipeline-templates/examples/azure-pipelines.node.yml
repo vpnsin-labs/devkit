@@ -1,0 +1,26 @@
+# azure-pipelines.yml — consumer of the shared pipeline-templates repo (node).
+# The CI job lives in the template; this file only declares triggers and parameters.
+trigger:
+  batch: true
+  branches:
+    include: [main, dev]
+
+pr:
+  branches:
+    include: [main, dev]
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: YOUR_PROJECT/pipeline-templates
+      ref: refs/tags/v1
+
+extends:
+  template: pipelines/ci-node.yml@templates
+  parameters:
+    timeoutInMinutes: 15
+    # preInstallSteps:            # Azure Artifacts feed auth
+    #   - task: npmAuthenticate@0
+    #     inputs:
+    #       workingFile: .npmrc

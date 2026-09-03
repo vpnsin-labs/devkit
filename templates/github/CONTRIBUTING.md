@@ -27,7 +27,7 @@ commitlint, markdownlint, Husky, and CI/release workflows.
 
 ## Commit messages — Conventional Commits (required)
 
-The `commit-msg` hook enforces them, and release-please uses them to compute the
+The `commit-msg` hook enforces them, and {{RELEASE_TOOL}} uses them to compute the
 version bump and changelog.
 
 | Type                                                                 | Effect        |
@@ -43,9 +43,8 @@ Example: `feat(auth): add password reset flow`
 
 - Keep PRs focused and fill in the PR template.
 - Make sure CI is green.
-- A code owner (see `CODEOWNERS`) will review and merge.
+- {{REVIEWERS}}
 
 ## Releases
 
-Merging to `main` opens or updates a **release-please** PR. Merging that PR
-publishes the GitHub release, tag, and changelog.
+{{RELEASE_FLOW}}

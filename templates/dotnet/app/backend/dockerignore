@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.git
+.github
+.azuredevops
+.vs
+.vscode
+TestResults
+tests
+temp
+*.user

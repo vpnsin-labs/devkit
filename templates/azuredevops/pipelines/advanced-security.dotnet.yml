@@ -1,0 +1,62 @@
+# GitHub Advanced Security for Azure DevOps — CodeQL code scanning + dependency
+# scanning. Opt-in (`devkit init --azure --ghazdo`): it is billed per active
+# committer and must be enabled on the repository first (Project settings →
+# Repositories → <repo> → Settings → Advanced Security). Secret scanning and push
+# protection come with that switch and need no pipeline. Results appear under
+# Repos → Advanced Security.
+name: advanced-security_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main, dev]
+
+schedules:
+  - cron: '0 6 * * 1' # weekly, Mondays 06:00 UTC
+    displayName: Weekly analysis
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  - job: advanced_security
+    displayName: CodeQL + dependency scanning
+    # Hard cap so a hung analysis can't drain the monthly Microsoft-hosted minutes.
+    timeoutInMinutes: 30
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - task: UseDotNet@2
+        displayName: Setup .NET (global.json)
+        inputs:
+          useGlobalJson: true
+
+      - task: AdvancedSecurity-Codeql-Init@1
+        displayName: Initialize CodeQL
+        inputs:
+          languages: csharp
+          querysuite: security-extended
+
+      # C# is compiled: CodeQL traces this build. Restore also produces the
+      # project.assets.json files that dependency scanning reads.
+      # {{ARTIFACTS_AUTH}}
+      - script: dotnet build -c Release
+        displayName: Build (traced by CodeQL)
+
+      - task: AdvancedSecurity-Dependency-Scanning@1
+        displayName: Dependency scanning
+
+      - task: AdvancedSecurity-Codeql-Analyze@1
+        displayName: Perform CodeQL analysis

@@ -1,0 +1,8 @@
+[[tool.uv.index]]
+# Azure Artifacts feed "{{FEED}}" as the default index (add PyPI as an upstream source
+# on the feed). Credentials come from the environment — no secrets in this file:
+#   UV_INDEX_AZURE_USERNAME=azure  UV_INDEX_AZURE_PASSWORD=<PAT with Packaging (Read)>
+# The pipelines set both from $(System.AccessToken).
+name = "azure"
+url = "{{PYPI_URL}}"
+default = true

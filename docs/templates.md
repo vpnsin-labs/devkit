@@ -27,6 +27,9 @@ customise it after the initial scaffold.
 - [App starters](#app-starters)
 - [Scratch workspace (temp/)](#scratch-workspace)
 - [Claude Code skills](#claude-code-skills)
+- [Python tooling](#python-tooling)
+- [.NET tooling](#net-tooling)
+- [Azure DevOps files](#azure-devops-files)
 
 ---
 
@@ -813,3 +816,49 @@ before writing code.
 
 Install this in repos where you want Claude to act as a disciplined design
 collaborator rather than making spontaneous visual decisions.
+
+---
+
+## Python tooling
+
+**Installed:** with `--python` (or when `pyproject.toml` / `requirements.txt` is detected)
+
+| File | Purpose |
+| --- | --- |
+| `pyproject.toml` | `[project]` skeleton for new projects; devkit-managed `[dependency-groups]`, `[tool.ruff]`, `[tool.mypy]`, `[tool.pytest.ini_options]`, `[tool.coverage.*]`, `[tool.commitizen]`. Existing files are only appended to (missing tables), never overwritten — even with `--force`. |
+| `.python-version` | Interpreter pin for uv / pyenv / CI |
+| `.pre-commit-config.yaml` | Ruff (fix + format), mypy from the project venv, `uv lock`, markdownlint, hygiene hooks, commitizen commit-msg check |
+| `Makefile` | `install`, `lint`, `format`, `type-check`, `test`, `check` |
+| `.gitignore` | Python / venv / tool caches / `.env` / `temp/` |
+| `.vscode/*` | Ruff formatter + fix-on-save, Pylance, mypy, pytest; Python extension set |
+| `temp/format.py` | Scratch HTTP probe (`python temp/format.py`) |
+| `src/app/*`, `tests/*`, `Dockerfile` | FastAPI starter (`--backend`) |
+
+The Node-specific templates (Husky, ESLint/Prettier shims, `.nvmrc`, `.npmrc`) are not
+installed. Full reference: [Python guide](python.md).
+
+## .NET tooling
+
+**Installed:** with `--dotnet` (or when `*.sln` / `*.slnx` / `*.csproj` / `global.json` is detected)
+
+| File | Purpose |
+| --- | --- |
+| `global.json` | SDK pin (`rollForward: latestFeature`) |
+| `Directory.Build.props` | `<Version>`, nullable, implicit usings, `TreatWarningsAsErrors`, `EnforceCodeStyleInBuild`, `AnalysisLevel latest-recommended`, deterministic/CI builds, `temp/` excluded from globs |
+| `.editorconfig` | Base rules + C# formatting/style/naming (build-enforced; fixed by `dotnet format`) |
+| `.githooks/pre-commit`, `commit-msg` | `dotnet format` on staged `*.cs`; Conventional Commit regex — enable with `git config core.hooksPath .githooks` |
+| `.config/dotnet-tools.json` | Local tools manifest (`versionize`) |
+| `.gitignore` | `bin/`, `obj/`, `.vs/`, `TestResults/`, `.env`, `temp/` |
+| `.vscode/*` | C# Dev Kit, format-on-save; .NET extension set |
+| `temp/format.cs` | Scratch HTTP probe (`dotnet run temp/format.cs`, .NET 10 file-based app) |
+| `<Name>.slnx`, `src/Api/*`, `tests/Api.Tests/*`, `Dockerfile` | ASP.NET Core minimal API starter (`--backend`) |
+
+Full reference: [.NET guide](dotnet.md).
+
+## Azure DevOps files
+
+**Installed:** with `--azure` (or when the `origin` remote is on `dev.azure.com` / `visualstudio.com`)
+
+Replaces the `.github/` templates: `azure-pipelines.yml`, `.azuredevops/pipelines/*`,
+`renovate.json`, `.azuredevops/pull_request_template.md`, root `SECURITY.md` and
+`CONTRIBUTING.md`. Full reference: [Azure DevOps guide](azure-devops.md).

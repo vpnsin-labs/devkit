@@ -1,5 +1,6 @@
-# Project Name
+# {{PROJECT_NAME}}
 
+<!-- {{BADGES}} -->
 > One-line description of what this project does.
 
 ## Features
@@ -38,13 +39,13 @@ npm run dev
 
 ## Contributing
 
-See [CONTRIBUTING](.github/CONTRIBUTING.md). Commits follow
+See [CONTRIBUTING]({{CONTRIBUTING_PATH}}). Commits follow
 [Conventional Commits](https://www.conventionalcommits.org/); releases are
-automated with release-please.
+automated with {{RELEASE_TOOL}}.
 
 ## Security
 
-See [SECURITY](.github/SECURITY.md) for how to report vulnerabilities.
+See [SECURITY]({{SECURITY_PATH}}) for how to report vulnerabilities.
 
 ## License
 

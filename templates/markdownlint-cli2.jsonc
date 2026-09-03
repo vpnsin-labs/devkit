@@ -15,6 +15,11 @@
     "**/dist/**",
     "**/build/**",
     "**/coverage/**",
+    "**/.venv/**",
+    "**/obj/**",
+    "**/bin/Debug/**",
+    "**/bin/Release/**",
+    "**/TestResults/**",
     "**/CHANGELOG.md",
     ".github/**/*.md"
   ]
