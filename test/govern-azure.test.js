@@ -45,7 +45,11 @@ test('resolveOrgUrl refuses to send the token to unexpected hosts or over http',
     resolveOrgUrl('https://ado.internal/tfs/Default', { trustedHosts: ['ADO.internal'] }),
     'https://ado.internal/tfs/Default'
   );
-  assert.throws(() => resolveOrgUrl('not a url://x'), /Invalid Azure DevOps organization URL/);
+  // a space in the host cannot parse (a bare word would just become a dev.azure.com path)
+  assert.throws(
+    () => resolveOrgUrl('https://bad host/org'),
+    /Invalid Azure DevOps organization URL/
+  );
 });
 
 test('identity API base is derived from the org URL', () => {
