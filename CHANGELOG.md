@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.5](https://github.com/vpnsin-labs/devkit/compare/v0.2.4...v0.2.5) (2026-09-03)
+
+
+### Features
+
+* add Render Blueprint (render.yaml) to the backend scaffold ([#37](https://github.com/vpnsin-labs/devkit/issues/37)) ([7f22bd7](https://github.com/vpnsin-labs/devkit/commit/7f22bd757305fd2db0365d72f378316137212bf5))
+* support Python, .NET and Azure Repos in devkit init and govern ([#47](https://github.com/vpnsin-labs/devkit/issues/47)) ([2f8d2e9](https://github.com/vpnsin-labs/devkit/commit/2f8d2e915269756ffe1feb9ea9e28c1992c51aa2))
+
 ## [0.2.4](https://github.com/vpnsin-labs/devkit/compare/v0.2.3...v0.2.4) (2026-06-22)
 
 
