@@ -33,6 +33,21 @@ test('resolveOrgUrl accepts a bare org name or a full URL', () => {
   );
 });
 
+test('resolveOrgUrl refuses to send the token to unexpected hosts or over http', () => {
+  assert.throws(() => resolveOrgUrl('http://dev.azure.com/contoso'), /must use https/);
+  assert.throws(
+    () => resolveOrgUrl('https://evil.example.com/contoso'),
+    /Refusing to send credentials/
+  );
+  assert.throws(() => resolveOrgUrl('https://dev.azure.com.evil.example/contoso'), /Refusing/);
+  // Azure DevOps Server: explicit opt-in per host
+  assert.equal(
+    resolveOrgUrl('https://ado.internal/tfs/Default', { trustedHosts: ['ADO.internal'] }),
+    'https://ado.internal/tfs/Default'
+  );
+  assert.throws(() => resolveOrgUrl('not a url://x'), /Invalid Azure DevOps organization URL/);
+});
+
 test('identity API base is derived from the org URL', () => {
   assert.equal(
     identityBaseFor('https://dev.azure.com/contoso'),

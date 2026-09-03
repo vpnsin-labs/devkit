@@ -265,7 +265,9 @@ npx devkit govern azure create payments-api
 Flags: `--org-url`, `--project`, `--default-branch`, `--config`, `--token`,
 `--dry-run`, `--prune`. Environment fallbacks: `AZURE_DEVOPS_ORG_URL`,
 `AZURE_DEVOPS_PROJECT`, and inside a pipeline `SYSTEM_COLLECTIONURI`,
-`SYSTEM_TEAMPROJECT`, `SYSTEM_ACCESSTOKEN` (a bearer token, detected automatically).
+`SYSTEM_TEAMPROJECT`, `SYSTEM_ACCESSTOKEN` (a bearer token, detected automatically). The token is only ever sent to
+`dev.azure.com` or `*.visualstudio.com` over https; for Azure DevOps Server list the host
+in `azure.trustedHosts`, otherwise the command refuses to run.
 
 ### Policies applied
 

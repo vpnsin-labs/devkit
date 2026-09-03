@@ -178,6 +178,7 @@ organization:
 #   organization: https://dev.azure.com/YOUR_ORG
 #   project: YOUR_PROJECT
 #   defaultBranch: main
+#   trustedHosts: []                       # Azure DevOps Server hosts allowed to receive the token
 #   policies:
 #     minimumReviewers: { minimumApproverCount: 1, resetOnSourcePush: true, blockLastPusherVote: true }
 #     workItemLinking: { enabled: true, blocking: true }
