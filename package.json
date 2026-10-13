@@ -1,6 +1,6 @@
 {
   "name": "@vpnsin-labs/devkit",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Shared dev tooling for Node.js/Next.js, Python and .NET repos on GitHub or Azure Repos: lint/format/commit hooks, CI (GitHub Actions or Azure Pipelines), release automation and repo governance.",
   "type": "module",
   "prettier": "./prettier/index.js",
